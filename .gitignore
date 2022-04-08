@@ -1,4 +1,10 @@
 *
+# project directories
+!/mem_init
+!/src
+
+# project files
 !.gitignore
-!.sv
-!.do
+!*.sv
+!*.do
+!*.mem
