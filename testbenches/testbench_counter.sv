@@ -1,4 +1,4 @@
-`include "..\\src\\counter.sv"
+`include ".\\src\\counter.sv"
 
 module testbench_counter_w_load;
 
