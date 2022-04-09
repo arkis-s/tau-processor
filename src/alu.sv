@@ -186,6 +186,10 @@ module alu # (
 
             end
 
+            15: begin
+                flags = 0;
+            end
+
             default: output_C = output_C;
         endcase
     end
