@@ -20,7 +20,7 @@ module alu # (
 
     // input -- final value for evaluation
     function is_zero (input [WORD_SIZE-1:0] A); begin
-        is_zero = (A == {{WORD_SIZE-1}1'b0});
+        is_zero = (A == {WORD_SIZE-1{1'b0}});
     end
     endfunction
 
@@ -32,8 +32,8 @@ module alu # (
 
     // input -- both original values
     function has_carry_add (input [WORD_SIZE-1:0] A, B); begin
-        logic [WORD_SIZE:0] temp = A + B;
-        has_carry_add = temp[WORD_SIZE];
+        automatic logic [WORD_SIZE:0] temp_add = A + B;
+        has_carry_add = temp_add[WORD_SIZE];
     end
     endfunction
 
@@ -59,10 +59,10 @@ module alu # (
 
         // if wordsize = 8 then wordsize-1 = 7 and wordsize-2 = 6
         // so size 6 will generate carry into bit 7
-        logic [WORD_SIZE-1:0] add_low = A[WORD_SIZE-2:0] + A[WORD_SIZE-2:0] + flags[CARRY];
-        logic [WORD_SIZE:0] add_all = A + B + flags[CARRY];
+        automatic logic [WORD_SIZE-1:0] add_low = A[WORD_SIZE-2:0] + A[WORD_SIZE-2:0] + flags[CARRY];
+        automatic logic [WORD_SIZE:0] add_all = A + B + flags[CARRY];
 
-        has_overflow = add_low[WORD_SIZE-1] xor add_all[WORD_SIZE];
+        has_overflow = add_low[WORD_SIZE-1] ^ add_all[WORD_SIZE];
 
     end
     endfunction
@@ -70,13 +70,13 @@ module alu # (
     logic [WORD_SIZE-1:0] temp;
 
     always_comb begin
-        case(mode_select) begin
+        case(mode_select)
             
             // do nothing
             0: output_C = output_C;
             
             // move B into C
-            1: input_B = output_C;
+            1: output_C = input_B;
 
             // compare a & b
             2:  begin
@@ -178,7 +178,7 @@ module alu # (
 
             // not
             14: begin
-                output_C = !input_A
+                output_C = !input_A;
                 flags[OVERFLOW] = 0;
                 flags[CARRY] = 0;
                 flags[SIGN] = is_signed(output_C);
@@ -187,7 +187,7 @@ module alu # (
             end
 
             default: output_C = output_C;
-        end
+        endcase
     end
 
 
