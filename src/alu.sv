@@ -47,6 +47,11 @@ module alu # (
     end
     endfunction
 
+    function has_carry_shift (input [WORD_SIZE:0] temp_in); begin
+        has_carry_shift = temp_in[WORD_SIZE];
+    end
+    endfunction
+
     // input -- both original values
     function has_overflow (input [WORD_SIZE-1:0] A, B); begin
 
@@ -59,15 +64,18 @@ module alu # (
 
         // if wordsize = 8 then wordsize-1 = 7 and wordsize-2 = 6
         // so size 6 will generate carry into bit 7
-        automatic logic [WORD_SIZE-1:0] add_low = A[WORD_SIZE-2:0] + A[WORD_SIZE-2:0] + flags[CARRY];
+
+        // do we need to add the carry flag? unsure
+        // http://www.righto.com/2012/12/the-6502-overflow-flag-explained.html
+        automatic logic [WORD_SIZE-1:0] add_low = A[WORD_SIZE-2:0] + B[WORD_SIZE-2:0] + flags[CARRY];
         automatic logic [WORD_SIZE:0] add_all = A + B + flags[CARRY];
 
         has_overflow = add_low[WORD_SIZE-1] ^ add_all[WORD_SIZE];
-
     end
     endfunction
 
     logic [WORD_SIZE-1:0] temp;
+    logic [WORD_SIZE:0] temp_plus_one;
 
     always_comb begin
         case(mode_select)
@@ -98,12 +106,20 @@ module alu # (
 
             //shift a left b times
             4:  begin
-                output_C = input_A << input_B;
+                temp_plus_one = input_A << input_B;
+                output_C = temp_plus_one[WORD_SIZE-1:0];
+
+                flags[ZERO] = is_zero(output_C);
+                flags[SIGN] = is_signed(output_C);
+                flags[CARRY] = has_carry_shift(temp_plus_one);
+                // flags[OVERFLOW] = has_overflow(input_A, input_B);
             end
             
             //shift a right b times
             5:  begin
                 output_C = input_A >> input_B;
+                flags[ZERO] = is_zero(output_C);
+                flags[SIGN] = is_signed(output_C);
             end
 
             // add =  a + b
@@ -146,7 +162,7 @@ module alu # (
             // mul = a * b
             10: begin
                 output_C = input_A * input_B;
-                flags[ZERO] = is_zero(output_C); 
+                flags[ZERO] = is_zero(output_C);
             end
 
             // and = a and b
@@ -179,10 +195,10 @@ module alu # (
             // not
             14: begin
                 output_C = !input_A;
-                flags[OVERFLOW] = 0;
-                flags[CARRY] = 0;
-                flags[SIGN] = is_signed(output_C);
-                flags[ZERO] = is_zero(output_C);
+                //flags[OVERFLOW] = 0;
+                //flags[CARRY] = 0;
+                //flags[SIGN] = is_signed(output_C);
+                //flags[ZERO] = is_zero(output_C);
 
             end
 
