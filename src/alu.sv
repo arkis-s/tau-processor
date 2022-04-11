@@ -74,6 +74,19 @@ module alu # (
     end
     endfunction
 
+        // input -- both original values
+    function has_overflow_subtract (input [WORD_SIZE-1:0] A, B); begin 
+        //https://stackoverflow.com/questions/8034566/overflow-and-carry-flags-on-z80/8037485#8037485
+        //https://en.wikipedia.org/wiki/Carry_flag
+        //https://stackoverflow.com/questions/8053053/how-does-an-adder-perform-unsigned-integer-subtraction/8061989#8061989
+        //https://stackoverflow.com/questions/8965923/carry-overflow-subtraction-in-x86
+        automatic logic [WORD_SIZE-1:0] add_low = A[WORD_SIZE-2:0] - (B[WORD_SIZE-2:0] + ~flags[CARRY]);
+        automatic logic [WORD_SIZE:0] add_all = A - (B + ~flags[CARRY]);
+
+        has_overflow_subtract = add_low[WORD_SIZE-1] ^ add_all[WORD_SIZE];
+    end
+    endfunction
+
     logic [WORD_SIZE-1:0] temp;
     logic [WORD_SIZE:0] temp_plus_one;
 
@@ -92,7 +105,7 @@ module alu # (
                 flags[ZERO] = is_zero(temp);
                 flags[SIGN] = is_signed(temp);
                 flags[CARRY] = has_carry_subtract(input_A, input_B);
-                flags[OVERFLOW] = has_overflow(input_A, input_B);
+                flags[OVERFLOW] = has_overflow_subtract(input_A, input_B);
             end
 
             // test a & b
@@ -111,13 +124,18 @@ module alu # (
 
                 flags[ZERO] = is_zero(output_C);
                 flags[SIGN] = is_signed(output_C);
-                flags[CARRY] = has_carry_shift(temp_plus_one);
-                // flags[OVERFLOW] = has_overflow(input_A, input_B);
+                // flags[CARRY] = has_carry_shift(temp_plus_one);
+                flags[CARRY] = temp_plus_one[WORD_SIZE];
             end
             
             //shift a right b times
             5:  begin
-                output_C = input_A >> input_B;
+
+                temp_plus_one[WORD_SIZE:1] = input_A;
+                temp_plus_one = temp_plus_one >> input_B;
+                output_C = temp_plus_one[WORD_SIZE:1];
+
+                flags[CARRY] = temp_plus_one[0];
                 flags[ZERO] = is_zero(output_C);
                 flags[SIGN] = is_signed(output_C);
             end
@@ -147,7 +165,7 @@ module alu # (
                 flags[ZERO] = is_zero(output_C);
                 flags[SIGN] = is_signed(output_C);
                 flags[CARRY] = has_carry_add(input_A, input_B);
-                flags[OVERFLOW] = has_overflow(input_A, input_B); 
+                flags[OVERFLOW] = has_overflow_subtract(input_A, input_B); 
             end
 
             // sbb = a - (b + carry)
@@ -156,7 +174,7 @@ module alu # (
                 flags[ZERO] = is_zero(output_C);
                 flags[SIGN] = is_signed(output_C);
                 flags[CARRY] = has_carry_add(input_A, input_B);
-                flags[OVERFLOW] = has_overflow(input_A, input_B); 
+                flags[OVERFLOW] = has_overflow_subtract(input_A, input_B); 
             end
 
             // mul = a * b
@@ -194,7 +212,7 @@ module alu # (
 
             // not
             14: begin
-                output_C = !input_A;
+                output_C = ~input_A;
                 //flags[OVERFLOW] = 0;
                 //flags[CARRY] = 0;
                 //flags[SIGN] = is_signed(output_C);
