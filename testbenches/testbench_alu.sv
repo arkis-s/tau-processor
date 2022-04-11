@@ -13,13 +13,12 @@ module testbench_alu;
     wire [7:0] flags;
     wire [WORD_SIZE-1:0] c;
 
-
-
-    // easier debug with enums? 
-    // https://github.com/arkis-s/tau-processor
     typedef enum { 
+    //   v    v    v     v      v       v
         NOP, MOV, CMP, TEST, SHFT_L, SHFT_R,
+    //   v    v     v   v         v   v
         ADD, ADC, SUB, SBB, MUL, AND, OR,
+    //   v    v        v
         XOR, NOT, CLEAR_FLAGS
     } alu_op_set;
 
@@ -36,10 +35,7 @@ module testbench_alu;
         $monitor("(%g) mode = %s\nin_A = %d, in_B = %d, out_C = %d\nFLAGS:\n\tZERO: %b\n\tSIGN: %b\n\tCARRY: %b\n\tOVERFLOW: %b\n",
                 $time, opcode.name(), a, b, c, flags[7], flags[6], flags[5], flags[4]);
 
-        
-        // done instructions:
-        // nop, clear_flags, add, adc, shft_l, 
-
+        // very rough testbench but there is at least one testcase for each instruction
 
         // alu nop
         a = 0; b = 0; opcode = NOP; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
@@ -52,10 +48,10 @@ module testbench_alu;
         a = 1; b = 0; opcode = ADC; #PERIOD;
 
         // add -- 2 + (-1) = 1
-        // 1 =  00000001
-        // -1 = 11111111
+        // 1 =  00000001 so -1 = 11111111
         a = 2; b = 8'b11111111; opcode = ADD; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
 
+        // 127 + 1 = 128 --> signed overflow
         a = 127; b = 1; opcode = ADD; #PERIOD;
 
         // shift left -- 2 << 6 = 128, no flags
@@ -70,29 +66,57 @@ module testbench_alu;
         // and -- 0110 1011 AND 1101 1111 = 0100 1011
         a = 8'b01101011; b = 8'b11011111; opcode = AND; #PERIOD;
 
+        // not -- 1111 0000 becomes 0000 1111
+        a = 8'b11110000; opcode = NOT; #PERIOD;
 
+        // or -- 0 or 0 = 0
+        a = 0; b = 0; opcode = OR; #PERIOD;
+        a = 8'b01110001; b = 8'b10001001; #PERIOD;
 
+        // shift right -- 255 >> 2 = 63
+        a = 255; b = 2; opcode = SHFT_R; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        // shift right -- 1 >> 1 = 0, cf = 1, zf = 1
+        a = 1; b = 1; opcode = SHFT_R; #PERIOD;
 
-        // // testing compare instruction which is a - b
-        // // so 3 - 4 = -1 should generate a sign and carry flag
-        // a = 3; b = 4; opcode = CMP; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        // move -- c = b
+        a = 63; b = 105; opcode = MOV; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        a = 11; b = 77; opcode = MOV; #PERIOD;
 
-        // // 4 - 3 = 1, shouldn't generate any flag
-        // a = 4; b = 3; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        // sub -- 127-27 = 100, no sign change
+        a = 127; b = 27; opcode=SUB; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
 
-        // // test instruction
-        // a = 255; b = 255; opcode = TEST; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
-        
-        // // shift left
-        // a = 1; b = 3; opcode = SHFT_L; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        // 1 - 1 = 0, zf = 1, cf = 0, sf = 0
+        a = 1; b = 1; opcode=SUB; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
 
-        // a = 1; b = 7; opcode = SHFT_L; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        // 5 - 6 = -1, zf = 0, cf = 0, sf = 1, of = 0
+        a = 5; b = 6; opcode=SUB; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
 
+        // 127 - (-1) = 128 but signed is -128 to 127 therefore cf = 1, sf = 1, of = 1
+        a = 127; b = -1; opcode=SUB; #PERIOD;
 
-        // // shift right
-        // b = 4; opcode = SHFT_R; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        // a - (b + c) where c is carry (set with the instruction before)
+        // so 3 - (1 + 1) = 1, sf=0, cf=0, of=0, zf=0
+        a = 3; b = 1; opcode=SBB; #PERIOD;
 
+        // a = c = 1, b = 1 so 1 - (1 + 0) = 0, sf = 0, zf = 1, cf = 0, of = 0
+        a = c; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
 
+        // xor
+        a = 8'b10001000; b = 8'b11111111; opcode = XOR; #PERIOD;
+        a = c; b = 8'b01110110; #PERIOD; // = 1
+
+        //test -- 10000011 AND 10001000 = 1000 0000 but only signs affected
+        // sf = 1, zf = 0, cf = 0, of= 0
+        a = 8'b10000011; b = 8'b10001000; opcode = TEST; #PERIOD; opcode = CLEAR_FLAGS; #CLEAR;
+        a = 8'b10000011; b = 8'b10001000; opcode = AND; #PERIOD;
+
+        // cmp -- 0 - 0 = 0 therefore equal , sf = 0, zf = 1, of = 0, cf= 0
+        a = 0; b = 0; opcode = CMP; #PERIOD;
+        // 50 - 40 = 10, sf = 0, zf = 0, of = 0, cf = 0
+        a = 50; b = 40; #PERIOD;
+
+        // 40 - 50 = -10, sf = 1, zf= 0, of = 0, cf =1
+        a = 40; b = 50; #PERIOD;
 
         $stop;
 
