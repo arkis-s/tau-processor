@@ -2,7 +2,7 @@
 // demux 1:3
 
 module mux_2to1 # (
-    parameter WORD_SIZE = 8;
+    parameter WORD_SIZE = 8
 ) (
     //                         0  1 
     input wire [WORD_SIZE-1:0] A, B,
@@ -25,7 +25,7 @@ endmodule
 
 // ALU side A input
 module mux_8to1 # (
-    parameter WORD_SIZE = 8;
+    parameter WORD_SIZE = 8
 ) (
     //                         0  1  2  3  4  5  6  7
     input wire [WORD_SIZE-1:0] A, B, C, D, E, F, G, H,
@@ -54,10 +54,10 @@ endmodule
 
 // ALU side B input
 module mux_9to1 # (
-    parameter WORD_SIZE = 8;
+    parameter WORD_SIZE = 8
 ) (
     //                         0  1  2  3  4  5  6  7  8  default
-    input wire [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, IMM8, NC
+    input wire [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, IMM8, NC,
     input wire enable,
     input wire [3:0] selector,
     output reg [WORD_SIZE-1:0] out = 0
@@ -89,7 +89,7 @@ module demux_1to3 # (
     input wire enable,
     input wire [1:0] selector,
     //                          0  1  2
-    output wire [WORD_SIZE-1:0] A, B, C, NC
+    output reg [WORD_SIZE-1:0] A, B, C, NC
 );
 
     always_comb begin
@@ -113,7 +113,7 @@ module demux_1to8 # (
     input wire enable,
     input wire [3:0] selector,
     //                          0  1  2  3  4  5  6  7, 8-...
-    output wire [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, NC
+    output reg [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, NC
 );
 
 
