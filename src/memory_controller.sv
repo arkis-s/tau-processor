@@ -3,7 +3,7 @@ module memory_controller # (
     parameter INPUT_DATA_WIDTH = 16
 ) (
     //                                                               v this is reg {E, F}
-    input wire [INPUT_ADDRESS_WIDTH-1:0] program_counter_address, input_address
+    input wire [INPUT_ADDRESS_WIDTH-1:0] program_counter_address, input_address,
     //                                 v this is reg {G, H}
     input wire [INPUT_DATA_WIDTH-1:0] input_data,
     input wire [2:0] microcode_control,
