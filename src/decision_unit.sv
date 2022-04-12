@@ -1,40 +1,3 @@
-/*
-
-decision unit
- -- responsible for deciding which address to load when a jump instruction is 
-
-inputs:
-    program counter/address
-    instruction
-    peak word
-    flags from alu
-
-output:
-    new address
-
-pseudocode/steps:
-
-instruction enum w opcode {
-    JMP = 4'h1400
-    JE = 4'h1500
-    JNE = 4'h1600
-    ...
-}
-
-case (instruction):
-
-    JMP:
-        new address = peak word
-    JE:
-        if flags[zero]:
-            new address = peak word
-    JNE:
-        if !flags[zero]:
-            new address = peak word
-    ...
-
-*/
-
 module decision_unit # (
     parameter WORD_SIZE = 16
 ) (
@@ -45,14 +8,11 @@ module decision_unit # (
     output reg [WORD_SIZE-1:0] new_address
 );
 
+    // move both enums into package(?)
     typedef enum logic [7:0] {
-        // v          v               v              v            v
         JMP = 8'h14, JE = 8'h15, JNE = 8'h16, JC = 8'h17, JNC = 8'h18,
-        // v            v               v           v
         JS = 8'h19, JNS = 8'h1A, JO = 8'h1B, JNO = 8'h1C,
-        // v           v                v            v 
         JA = 8'h1D, JAE = 8'h1E, JB = 8'h1F, JBE = 8'h20,
-        // v           v              v             
         JG = 8'h21, JGE = 8'h22, JL = 8'h23, JLE = 8'h24
     } jump_instruction_enum;
 
@@ -61,11 +21,11 @@ module decision_unit # (
     } flag_name_enum;
 
 
+    // todo: make this look better somehow
     always_comb begin
         case (instruction[15:8])
 
             JMP: new_address = peek_jump_address;
-
 
             JE: new_address = (flags[ZERO] == 1) ? peek_jump_address : program_counter_address;
             JNE: new_address = (flags[ZERO] == 0) ? peek_jump_address : program_counter_address;
