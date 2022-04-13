@@ -181,6 +181,7 @@ module alu # (
             10: begin
                 output_C = input_A * input_B;
                 flags[ZERO] = is_zero(output_C);
+                flags[SIGN] = is_signed(output_C);
             end
 
             // and = a and b
