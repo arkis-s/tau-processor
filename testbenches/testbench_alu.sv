@@ -118,7 +118,13 @@ module testbench_alu;
         // 40 - 50 = -10, sf = 1, zf= 0, of = 0, cf =1
         a = 40; b = 50; #PERIOD;
 
-        $stop;
+        opcode = CLEAR_FLAGS; #PERIOD;
+        a = 1; b = 2; opcode = MUL; #PERIOD;
+        a = c; #PERIOD;
+        a = 0; #PERIOD;
+        a = -2; b = 10; #PERIOD;
+
+        //$stop;
 
     end
 endmodule
