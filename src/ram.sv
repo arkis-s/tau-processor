@@ -33,7 +33,7 @@ module ram_dual_port_sync # (
     parameter ADDRESS_WIDTH = 16,
     parameter DATA_WIDTH = 16,
     parameter MEMORY_DEPTH = 64,
-    parameter INIT_FILE = "";
+    parameter INIT_FILE = ""
 ) (
     input wire clock_a, clock_b, enable_a, enable_b, rw_a, rw_b,
     input wire [ADDRESS_WIDTH-1:0] address_a, address_b,
