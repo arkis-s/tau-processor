@@ -1,9 +1,22 @@
 // TAU MICROCODE
-// 20 bit word
-//
-//
-// |            |  |            |  |          |  |        |  |        |
-// 19  18  17  16  15  14  13  12  11  10  9  8  7  6  5  4  3  2  1  0
-// 1   0    0   0 
-80000
-00000 80000
+// 
+// ========== MICROCODE LAYOUT ==========
+//  halt + mem c   instr. f + dataflow    alu mode     alu io + imm8 flag
+//  15 14 13 12       11 10 9 8            7 6 5 4        3 2 1 0
+// 
+// 15 - halt flag
+// 14:12 - memory controller mode select
+//      1 - load, 2 - store
+//      3 - loadv, 4 - storev
+//      5 - peek
+// 11 - instruction finish flag
+// 10:8 - program/video ram datapath muxer-demuxer mode select
+//      10 - (0) pram / (1) vram select
+//      9:8 - (0) instruction, (1) load,  (2) peek
+// 7:4 - alu mode select
+// 3:1 - alu i/o muxer/demuxer control 
+//      3 -> output C,  2 -> input B,   1 -> input A
+// 0 - lower byte contains an immediate 8bit value
+0800 0800 // nop @ 0 - 1
+0000 8800 // hlt @ 2 - 3
+001d 0800 // mov reg1, imm8 @ 4 - 5
