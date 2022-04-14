@@ -17,6 +17,7 @@ module testbench_compute;
 
     localparam WORD_SIZE = 16;
     localparam MICROCODE_WIDTH = 16;
+    localparam BYTE = 8;
 
     wire [WORD_SIZE-1:0] PC_value;
     wire ED_PC_enable;
@@ -104,6 +105,77 @@ module testbench_compute;
         .program_counter_enable(ED_PC_enable)
     );
 
+    wire [WORD_SIZE-1:0] MUX2t1_DATAPATH_word;
+
+    mux_2to1 # (
+        .WORD_SIZE(WORD_SIZE)
+    ) uut_mux_2to1_datapath (
+        .A(PRAM_data_out), .B(16'b0), 
+        .enable(1'b1), .selector(MCR_control_lines[10]), .out(MUX2t1_DATAPATH_word)
+    );
+
+    wire [WORD_SIZE-1:0] DATAPATH_instruction, DATAPATH_load, DATAPATH_peek, DATAPATH_void;
+
+    demux_1to3 # (
+        .WORD_SIZE(WORD_SIZE)
+    ) uut_demux_1to3_datapath (
+        .input_value(MUX2t1_DATAPATH_word), .enable(1'b1),
+        .selector(MCR_control_lines[9:8]),
+        .A(DATAPATH_instruction), .B(DATAPATH_load), .C(DATAPATH_peek), .NC(DATAPATH_void)
+    );
+
+    wire [2:0] MUX_LOGIC_SIDE_A_select;
+    wire [3:0] MUX_LOGIC_SIDE_B_select;
+
+    muxer_select_decision_logic_a # (.WORD_SIZE(WORD_SIZE)
+    ) uut_muxer_decision_logic_A (
+        .instruction(DATAPATH_instruction), .imm_flag(MCR_control_lines[0]),
+        .mode_select(MUX_LOGIC_SIDE_A_select)
+    );
+
+    muxer_select_decision_logic_b # (.WORD_SIZE(WORD_SIZE), .DEFAULT_IMM_SELECTOR_VALUE(8)
+    ) uut_muxer_decision_logic_b (
+        .instruction(DATAPATH_instruction), .imm_flag(MCR_control_lines[0]),
+        .mode_select(MUX_LOGIC_SIDE_B_select)
+    );
+
+
+    wire [BYTE-1:0] MUX_ALU_input_a, MUX_ALU_input_b,
+                    ALU_value_out,
+                    ALU_DEMUX_a, ALU_DEMUX_b, ALU_DEMUX_c, ALU_DEMUX_d, ALU_DEMUX_e, ALU_DEMUX_f, ALU_DEMUX_g, ALU_DEMUX_h,
+                    REG_a_val, REG_b_val, REG_c_val, REG_d_val;
+
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_a (.clock(clk_a), .input_value(ALU_DEMUX_a), .output_value(REG_a_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_b (.clock(clk_a), .input_value(ALU_DEMUX_b), .output_value(REG_b_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_c (.clock(clk_a), .input_value(ALU_DEMUX_c), .output_value(REG_c_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_d (.clock(clk_a), .input_value(ALU_DEMUX_d), .output_value(REG_d_val));
+
+
+
+    // alu side a input mux
+    mux_8to1 # (.WORD_SIZE(BYTE)
+    ) uut_muxer_alu_input_a (
+        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(), .F(), .G(), .H(),
+        .enable(MCR_control_lines[1]), .selector(MUX_LOGIC_SIDE_A_select), 
+        .out(MUX_ALU_input_a)
+    );
+
+    mux_9to1 # (.WORD_SIZE(BYTE)) uut_muxer_alu_input_b (
+        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(), .F(), .G(), .H(), .IMM8(DATAPATH_instruction[7:0]), .NC(),
+        .enable(MCR_control_lines[2]), .selector(MUX_LOGIC_SIDE_B_select), .out(MUX_ALU_input_b)
+    );
+
+    wire [7:0] ALU_flags;
+
+    alu # (.WORD_SIZE(BYTE)) uut_alu (
+        .input_A(MUX_ALU_input_a), .input_B(MUX_ALU_input_b), 
+        .mode_select(MCR_control_lines[7:4]), .flags(ALU_flags), .output_C(ALU_value_out)
+    );
+
+    demux_1to8 # (.WORD_SIZE(BYTE)) uut_demux_alu_out (
+        .input_value(ALU_value_out), .enable(MCR_control_lines[3]), .selector(MUX_LOGIC_SIDE_A_select),
+        .A(ALU_DEMUX_a), .B(ALU_DEMUX_b), .C(ALU_DEMUX_c), .D(ALU_DEMUX_d), .E(ALU_DEMUX_e), .F(ALU_DEMUX_f), .G(ALU_DEMUX_g), .H(ALU_DEMUX_h)
+    );
 
     initial begin
         
