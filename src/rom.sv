@@ -39,7 +39,7 @@ module ROM_async # (
         $readmemh(INIT_FILE, memory_block);
     end
 
-    always @ (address) begin
+    always_comb begin
         if (read_enable) begin
             data <= memory_block[address];
         end
