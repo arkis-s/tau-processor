@@ -1,3 +1,6 @@
-0000
-0100
-0200
+0000 // nop
+28BE // mov a, BE
+29EF // mov b, EF
+28EF // mov a, EF
+0000 // nop
+0100 // hlt
