@@ -16,9 +16,12 @@ module testbench_compute;
     always #CLK_5 clk_a = ~clk_a;
 
     localparam WORD_SIZE = 16;
+    localparam MICROCODE_WIDTH = 16;
 
     wire [WORD_SIZE-1:0] PC_value;
     wire ED_PC_enable;
+
+    wire [MICROCODE_WIDTH-1:0] MCR_control_lines;
 
     // program counter
     counter_w_load # (
@@ -38,7 +41,7 @@ module testbench_compute;
     ) uut_memory_controller (
         .program_counter_address(PC_value),
         .input_address(16'b0), .input_data(16'b0),
-        .microcode_control(),
+        .microcode_control(MCR_control_lines[14:12]),
         .p_ram_rw(MC_PRAM_rw), .p_ram_address(MC_PRAM_addr), .p_ram_data(MC_PRAM_data),
         .v_ram_rw(MC_VRAM_rw), .v_ram_address(MC_VRAM_addr), .v_ram_data(MC_VRAM_data)
     );
@@ -50,7 +53,7 @@ module testbench_compute;
         .ADDRESS_WIDTH(16), .DATA_WIDTH(16),
         .MEMORY_DEPTH(64), .INIT_FILE(".\\mem_init\\test_program.mem")
     ) uut_program_ram (
-        .clock(clk_a), .enable(), .rw(MC_PRAM_rw),
+        .clock(clk_a), .enable(1'b1), .rw(MC_PRAM_rw),
         .address(MC_PRAM_addr), .data_in(MC_PRAM_data),
         .data_out(PRAM_data_out)
     );
@@ -59,7 +62,7 @@ module testbench_compute;
 
     // opcode-to-microcode translator rom
     ROM_async # (
-        .ADDRESS_WIDTH(8), .MEMORY_DEPTH(8),
+        .ADDRESS_WIDTH(8), .MEMORY_DEPTH(256),
         .DATA_WIDTH(16),
         .INIT_FILE(".\\mem_init\\opcode_microcode_translate.mem")
     ) uut_opcode_translator_rom (
@@ -74,14 +77,11 @@ module testbench_compute;
     counter_w_load # (
         .ADDRESS_WIDTH(16), .DATA_WIDTH(16)
     ) uut_microcode_sequencer (
-        .clock(clk_a), .load(ED_MSC_load), .enable(ED_MCS_enable),
+        .clock(clk_a), .load(ED_MCS_load), .enable(ED_MCS_enable),
         .address(OPCODE_TRANSLATION_data), .data(MCS_MCR_index)
     );
 
-    localparam MICROCODE_WIDTH = 20;
     wire ED_MCR_enable;
-    wire [MICROCODE_WIDTH-1:0] MCR_control_lines;
-
 
     // microcode rom
     ROM_async # (
@@ -97,7 +97,7 @@ module testbench_compute;
     // execution driver
     execution_driver uut_execution_driver (
         .clock(clk_a), .enable(ED_enable), 
-        .instruction_finish_control_line(MCR_control_lines[19]),
+        .instruction_finish_control_line(MCR_control_lines[11]),
         .microcode_sequencer_load_n(ED_MCS_load),
         .microcode_sequencer_enable(ED_MCS_enable),
         .microcode_rom_read_enable(ED_MCR_enable),
