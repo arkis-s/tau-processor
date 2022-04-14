@@ -1,6 +1,3 @@
-// TODO:
-// demux 1:3
-
 module mux_2to1 # (
     parameter WORD_SIZE = 8
 ) (
@@ -56,7 +53,7 @@ endmodule
 module mux_9to1 # (
     parameter WORD_SIZE = 8
 ) (
-    //                         0  1  2  3  4  5  6  7  8  default
+    //                         0  1  2  3  4  5  6  7    8  default
     input wire [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, IMM8, NC,
     input wire enable,
     input wire [3:0] selector,
@@ -111,8 +108,8 @@ module demux_1to8 # (
 ) (
     input wire[WORD_SIZE-1:0] input_value = 0,
     input wire enable,
-    input wire [3:0] selector,
-    //                          0  1  2  3  4  5  6  7, 8-...
+    input wire [2:0] selector,
+    //                          0  1  2  3  4  5  6  7, ///8-...
     output reg [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, NC
 );
 
@@ -129,7 +126,7 @@ module demux_1to8 # (
                 5: F = input_value;
                 6: G = input_value;
                 7: H = input_value;
-                default: NC = input_value;
+                // default: NC = input_value;
             endcase
         end
     end
