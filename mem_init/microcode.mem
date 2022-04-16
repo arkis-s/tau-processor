@@ -17,6 +17,26 @@
 // 3:1 - alu i/o muxer/demuxer control 
 //      3 -> output C,  2 -> input B,   1 -> input A
 // 0 - lower byte contains an immediate 8bit value
-0800 0800 // nop @ 0 - 1
-0000 8800 // hlt @ 2 - 3
-001d 0800 // mov reg1, imm8 @ 4 - 5
+//
+// ========== ALU OPCODES ==========
+// 0 - nop, 1 - pass through, 2 - cmp, 3 - test, 4 - shift left, 5 - shift right
+// 6 - add, 7 - adc, 8 - sub, 9 - sbb, 10/Ah - multiply, 11/Bh - and, 12/Ch - or, 13/Dh - xor, 
+// 14/Eh - not, 15/Fh - clear flags
+///
+0800 // nop @ 0 - 0
+8800 // hlt @ 1 - 1
+0016 0808 // mov reg1, reg2 @ 2 - 3
+0026 0800 // cmp reg1, reg2 @ 4 - 5
+0036 0800 // test reg1, reg2 @ 6 - 7
+0046 0808 // shl reg1, reg2 @ 8 - 9
+0056 0808 // shr reg1, reg2 @ A - B
+0066 0808 // add reg1, reg2 @ C - D
+0076 0808 // adc reg1, reg2 @ E - F
+0086 0808 // sub reg1, reg2 @ 10 - 11
+0096 0808 // sbb reg1, reg2 @ 12 - 13
+00A6 0808 // mult reg1, reg2 @ 14 - 15
+00B6 0808 // and reg1, reg2 @ 16 - 17
+00C6 0808 // or reg1, reg2 @ 18 - 19
+00D6 0808 // xor reg1, reg2 @ 1A - 1B
+00E2 0808 // not reg1 @ 1C - 1D
+001d 0800 // mov reg1, imm8 @ ---- 1E - 1F

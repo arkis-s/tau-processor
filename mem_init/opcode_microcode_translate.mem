@@ -1,26 +1,26 @@
 // translates 8 bit opcode into appropriate index for microcode
-// i.e. if opcode = 0F, then maybe index = FEFE in opcode
+// i.e. if opcode = 0F, then maybe index = FEFE in microcode
 // line number (excluding comments) == opcode and line content == index
 0000 // 00h nop
-0002 // 01h hlt
+0001 // 01h hlt
 0000 // 02h load
 0000 // 03h store
 0000 // 04h loadv
 0000 // 05h storev
-0000 // 06h mov reg1, reg2
-0000 // 07h cmp reg1, reg2
-0000 // 08h test reg1, reg2
-0000 // 09h shl reg1, reg2
-0000 // 0Ah shr reg1, reg2
-0000 // 0Bh add reg1, reg2
-0000 // 0Ch adc reg1, reg2
-0000 // 0Dh sub reg1, reg2
-0000 // 0Eh sbb reg1, reg2
-0000 // 0Fh mul reg1, reg2
-0000 // 10h and reg1, reg2
-0000 // 11h or reg1, reg2
-0000 // 12h xor reg1, reg2
-0000 // 13h not reg1
+0002 // 06h mov reg1, reg2
+0004 // 07h cmp reg1, reg2
+0006 // 08h test reg1, reg2
+0008 // 09h shl reg1, reg2
+000A // 0Ah shr reg1, reg2
+000C // 0Bh add reg1, reg2
+000E // 0Ch adc reg1, reg2
+0010 // 0Dh sub reg1, reg2
+0012 // 0Eh sbb reg1, reg2
+0014 // 0Fh mul reg1, reg2
+0016 // 10h and reg1, reg2
+0018 // 11h or reg1, reg2
+001A // 12h xor reg1, reg2
+001C // 13h not reg1
 0000 // 14h jmp
 0000 // 15h je
 0000 // 16h jne
@@ -41,11 +41,11 @@
 0000 // 25h undef
 0000 // 26h undef
 0000 // 27h undef
-0004 // 28h mov a, imm8
-0004 // 29h mov b, imm8
-0004 // 2Ah mov c, imm8
-0004 // 2Bh mov d, imm8
-0004 // 2Ch mov e, imm8
-0004 // 2Dh mov f, imm8
-0004 // 2Eh mov g, imm8
-0004 // 2Fh mov h, imm8
+001E // 28h mov a, imm8
+001E // 29h mov b, imm8
+001E // 2Ah mov c, imm8
+001E // 2Bh mov d, imm8
+001E // 2Ch mov e, imm8
+001E // 2Dh mov f, imm8
+001E // 2Eh mov g, imm8
+001E // 2Fh mov h, imm8
