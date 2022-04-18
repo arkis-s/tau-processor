@@ -14,6 +14,7 @@
 // zero registers
 1200 // xor a, a
 1211 // xor b, b
+0100 // hlt
 1222 // xor c, c
 
 28FE // mov a, 254

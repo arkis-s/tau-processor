@@ -1,5 +1,5 @@
 module execution_driver (
-    input wire clock, enable, instruction_finish_control_line,
+    input wire clock, enable, instruction_finish_control_line, halt,
     output reg microcode_sequencer_load_n, microcode_sequencer_enable, microcode_rom_read_enable, program_counter_enable
 );
 
@@ -13,6 +13,13 @@ module execution_driver (
         program_counter_enable <= 0;
     end
 
+    always @ (posedge halt) begin
+        state = 5;
+        microcode_sequencer_load_n <= 1;
+        microcode_sequencer_enable <= 0;
+        microcode_rom_read_enable <= 0;
+        program_counter_enable <= 0;
+    end
 
     always @ (negedge clock) begin
 
@@ -77,6 +84,14 @@ module execution_driver (
                     program_counter_enable <= 0;
                     state <= 1;
                     $display("(%t) STATE 4 - EXECUTION FINISHED\n", $time);
+                end
+
+                5: begin
+                    microcode_sequencer_load_n <= 1;
+                    microcode_sequencer_enable <= 0;
+                    microcode_rom_read_enable <= 0;
+                    program_counter_enable <= 0;
+                    $display("(%g) STATE 5 - HALT.\n", $time);
                 end
         endcase
     end

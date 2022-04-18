@@ -93,11 +93,16 @@ module testbench_compute;
         .address(MCS_MCR_index), .data(MCR_control_lines)
     );
 
-    reg ED_enable = 0;
+    // reg ED_enable = 0;
+    wire ED_enable;
+
+    halt_check # (.OPCODE_SIZE(8)) uut_halt_check (
+        .opcode(PRAM_data_out[15:8]), .result(ED_enable)
+    );
 
     // execution driver
     execution_driver uut_execution_driver (
-        .clock(clk_a), .enable(ED_enable), 
+        .clock(clk_a), .enable(ED_enable), .halt(~ED_enable),
         .instruction_finish_control_line(MCR_control_lines[11]),
         .microcode_sequencer_load_n(ED_MCS_load),
         .microcode_sequencer_enable(ED_MCS_enable),
@@ -179,9 +184,9 @@ module testbench_compute;
 
     initial begin
         
-        #10;
-        ED_enable = 1;
-        #400;
+        // #10;
+        // ED_enable = 1;
+        #550;
 
         $stop;
 
