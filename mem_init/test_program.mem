@@ -1,24 +1,32 @@
-2801 // mov a, 1
-2902 // mov b, 2
-0901 // shl a, b -> a = 4
-0A01 // shr a, b -> a = 1
-2A00 // mov c, 0
-0B21 // add c, b -> 2 + 0 = 2
+2801 // 0 mov a, 1
+2901 // 1 mov b, 1
+0b01 // 2 add a, b
+1400 // 3 jmp 
+0006 // 4 addr
+28FF // 5 mov a, 255
+0100 // 6 hlt
 
-// generate overflow flag
-28FF // mov a, 255
-2901 // mov b, 1
-0b01 // add a, b
-0c00 // adc a, a
-
-// zero registers
-1200 // xor a, a
-1211 // xor b, b
-0100 // hlt
-1222 // xor c, c
-
-28FE // mov a, 254
-1300 // not a
+//2801 // mov a, 1
+//2902 // mov b, 2
+//0901 // shl a, b -> a = 4
+//0A01 // shr a, b -> a = 1
+//2A00 // mov c, 0
+//0B21 // add c, b -> 2 + 0 = 2
+//
+//// generate overflow flag
+//28FF // mov a, 255
+//2901 // mov b, 1
+//0b01 // add a, b
+//0c00 // adc a, a
+//
+//// zero registers
+//1200 // xor a, a
+//1211 // xor b, b
+//0100 // hlt
+//1222 // xor c, c
+//
+//28FE // mov a, 254
+//1300 // not a
 
 
 //28FF // mov a, FF

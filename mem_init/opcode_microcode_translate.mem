@@ -21,7 +21,7 @@
 0018 // 11h or reg1, reg2
 001A // 12h xor reg1, reg2
 001C // 13h not reg1
-0000 // 14h jmp
+001E // 14h jmp
 0000 // 15h je
 0000 // 16h jne
 0000 // 17h jc
@@ -41,11 +41,11 @@
 0000 // 25h undef
 0000 // 26h undef
 0000 // 27h undef
-001E // 28h mov a, imm8
-001E // 29h mov b, imm8
-001E // 2Ah mov c, imm8
-001E // 2Bh mov d, imm8
-001E // 2Ch mov e, imm8
-001E // 2Dh mov f, imm8
-001E // 2Eh mov g, imm8
-001E // 2Fh mov h, imm8
+0021 // 28h mov a, imm8
+0021 // 29h mov b, imm8
+0021 // 2Ah mov c, imm8
+0021 // 2Bh mov d, imm8
+0021 // 2Ch mov e, imm8
+0021 // 2Dh mov f, imm8
+0021 // 2Eh mov g, imm8
+0021 // 2Fh mov h, imm8
