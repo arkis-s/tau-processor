@@ -7,8 +7,166 @@
 `include ".\\src\\ram.sv"
 `include ".\\src\\rom.sv"
 `include ".\\src\\reg_immN_control.sv"
+`include ".\\src\\halt_check.sv"
+`include ".\\src\\datapath_controller.sv"
 
-module testbench_compute;
+
+module testbench_compute_primitive;
+
+    localparam CLOCK = 5;
+    reg clk = 0;
+    always #CLOCK clk = ~clk;
+
+    localparam WORD_SIZE = 16;
+    localparam BYTE = 8;
+    localparam MICROCODE_WIDTH = 16;
+
+    wire [WORD_SIZE-1:0] program_counter_value,
+                            p_ram_address, v_ram_address, p_ram_data, v_ram_data,
+                            PRAM_data_out, 
+                            DATAPATH_instruction, DATAPATH_peek, DATAPATH_load;
+
+    wire p_ram_rw, v_ram_rw;
+
+    reg pc_en = 0;
+    reg [2:0] memory_controller_mode = 0, datapath_controller_mode = 0;
+
+    counter_w_load # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16))
+    uut_program_counter (
+        .clock(clk), .load(1'b1), .enable(pc_en),
+        .address(16'b0), .data(program_counter_value)
+    );
+
+    memory_controller # (.INPUT_ADDRESS_WIDTH(16), .INPUT_DATA_WIDTH(16))
+    uut_memory_controller (
+        .program_counter_address(program_counter_value), .input_address(16'b0),
+        .input_data(16'b0), .microcode_control(memory_controller_mode),
+        .p_ram_rw(p_ram_rw), .v_ram_rw(v_ram_rw),
+        .p_ram_address(p_ram_address), .v_ram_address(v_ram_address),
+        .p_ram_data(p_ram_data), .v_ram_data(v_ram_data) 
+    );
+
+    ram_single_port_sync # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16), .MEMORY_DEPTH(64), .INIT_FILE(".\\mem_init\\test_program.mem"))
+    uut_program_ram (
+        .clock(clk), .enable(1'b1), .rw(p_ram_rw),
+        .address(p_ram_address), .data_in(p_ram_data),
+        .data_out(PRAM_data_out)
+    );
+
+    datapath_controller # (.WORD_SIZE(16), .MODE_SELECT_SIZE(3)) uut_datapath_controller (
+        .p_ram_data(PRAM_data_out), .v_ram_data(), .mode(datapath_controller_mode),
+        .instruction(DATAPATH_instruction), .peek(DATAPATH_peek),
+        .load(DATAPATH_load)
+    );
+
+
+    initial begin
+
+        #10; memory_controller_mode <= 5; datapath_controller_mode <= 1;
+        #10; pc_en = 1; memory_controller_mode <= 0; datapath_controller_mode <= 0;
+        #20; //pc_en = 0;
+
+        $stop;
+
+    end
+endmodule
+
+module testbench_compute_2;
+
+    // clock
+    localparam CLK_5 = 5;
+    reg clk = 0;
+    always #CLK_5 clk = ~clk;
+
+    localparam WORD_SIZE = 16, MICROCODE_WIDTH = 16, BYTE = 8;
+
+    wire [MICROCODE_WIDTH-1:0] control_lines;
+
+    wire [WORD_SIZE-1:0] PC_value, PC_new_address,
+                        DATAPATH_instruction, DATAPATH_peek, DATAPATH_load,
+                        MC_PRAM_addr, MC_PRAM_data,
+                        PRAM_data_out,
+                        OPCODE_TRANSLATOR_index, MICROSEQUENCER_address;
+    
+    wire HJ_ED_enable, 
+        ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en,
+        MC_PRAM_rw;
+
+    halt_check uut_halt_check (.opcode(DATAPATH_instruction[15:8]), .result(HJ_ED_enable));
+
+    execution_driver uut_execution_driver (
+        .clock(clk), .enable(HJ_ED_enable), .instruction_finish_control_line(control_lines[11]),
+        .halt(~HJ_ED_enable),
+        .microcode_sequencer_load_n(ED_MCS_load_n), .microcode_sequencer_enable(ED_MCS_en), 
+        .microcode_rom_read_enable(ED_MCR_en), .program_counter_enable(ED_PC_en)
+    );
+
+    counter_w_load # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16)) uut_program_counter (
+        .clock(clk), .load(~control_lines[15]), .enable(ED_PC_en),
+        .address(PC_new_address), .data(PC_value)
+    );
+
+    memory_controller uut_memory_controller (
+        .program_counter_address(PC_value), .input_address(), .input_data(),
+        .microcode_control(control_lines[14:12]),
+        .p_ram_rw(MC_PRAM_rw), .p_ram_address(MC_PRAM_addr), .p_ram_data(MC_PRAM_data),
+        .v_ram_rw(), .v_ram_address(), .v_ram_data()
+    );
+
+    ram_single_port_sync # (.INIT_FILE(".\\mem_init\\test_program.mem")) uut_program_ram (
+        .clock(clk), .enable(1'b1), .rw(MC_PRAM_rw), 
+        .address(MC_PRAM_addr), .data_in(MC_PRAM_data), .data_out(PRAM_data_out)
+    );
+
+    datapath_controller uut_datapath_controller (
+        .p_ram_data(PRAM_data_out), .v_ram_data(),
+        .mode(control_lines[10:8]),
+        .instruction(DATAPATH_instruction),
+        .peek(DATAPATH_peek), .load(DATAPATH_load)
+    );
+
+    ROM_async # (.ADDRESS_WIDTH(8), .MEMORY_DEPTH(256), 
+                 .DATA_WIDTH(16), 
+                 .INIT_FILE(".\\mem_init\\opcode_microcode_translate.mem")
+    ) uut_opcode_translator_rom (
+        .read_enable(1'b1), .address(DATAPATH_instruction[15:8]),
+        .data(OPCODE_TRANSLATOR_index)
+    );
+
+    counter_w_load # (
+        .ADDRESS_WIDTH(16), .DATA_WIDTH(16)
+    ) uut_microcode_sequencer (
+        .clock(clk), .load(ED_MCS_load_n), .enable(ED_MCS_en),
+        .address(OPCODE_TRANSLATOR_index), .data(MICROSEQUENCER_address)
+    );
+
+     ROM_async # (
+        .ADDRESS_WIDTH(16), .DATA_WIDTH(MICROCODE_WIDTH), 
+        .MEMORY_DEPTH(64), .INIT_FILE(".\\mem_init\\microcode.mem")
+    ) uut_microcode_rom (
+        .read_enable(ED_MCR_en), 
+        .address(MICROSEQUENCER_address), .data(control_lines)
+    );
+
+    decision_unit uut_decision_unit (
+        .program_counter_address(PC_value), .instruction(DATAPATH_instruction),
+        .peek_jump_address(DATAPATH_peek), .flags(), .new_address(PC_new_address)
+        //.clock(clk)
+    );
+
+
+    initial begin
+
+        #400;
+        $stop;
+    end
+
+
+endmodule
+
+
+
+/*module testbench_compute;
 
     // clock
     localparam CLK_5 = 5;
@@ -19,17 +177,20 @@ module testbench_compute;
     localparam MICROCODE_WIDTH = 16;
     localparam BYTE = 8;
 
-    wire [WORD_SIZE-1:0] PC_value;
+    wire [WORD_SIZE-1:0] PC_value, PC_new_address;
     wire ED_PC_enable;
 
     wire [MICROCODE_WIDTH-1:0] MCR_control_lines;
+
+    wire [WORD_SIZE-1:0] DATAPATH_instruction, DATAPATH_load, DATAPATH_peek, DATAPATH_void;
 
     // program counter
     counter_w_load # (
         .ADDRESS_WIDTH(16), .DATA_WIDTH(16)
     ) uut_program_counter (
-        .clock(clk_a), .load(1'b1), .enable(ED_PC_enable),
-        .address(16'b0), .data(PC_value)
+        .clock(clk_a), .load(~MCR_control_lines[15]), 
+        .enable(ED_PC_enable),
+        .address(PC_new_address), .data(PC_value)
     );
 
     wire MC_PRAM_rw, MC_VRAM_rw;
@@ -60,6 +221,12 @@ module testbench_compute;
     );
 
     wire [WORD_SIZE-1:0] OPCODE_TRANSLATION_data;
+    wire opcode_translator_en;
+
+    jump_check # (.OPCODE_SIZE(8)) uut_jump_check (
+        .opcode(DATAPATH_instruction[15:8]),
+        .result(opcode_microcode_translator_en)
+    );
 
     // opcode-to-microcode translator rom
     ROM_async # (
@@ -67,8 +234,10 @@ module testbench_compute;
         .DATA_WIDTH(16),
         .INIT_FILE(".\\mem_init\\opcode_microcode_translate.mem")
     ) uut_opcode_translator_rom (
-        .read_enable(1'b1),
-        .address(PRAM_data_out[15:8]), .data(OPCODE_TRANSLATION_data)
+        .read_enable(opcode_microcode_translator_en),
+        // .address(DATAPATH_instruction[15:8]),
+        .address(PRAM_data_out[15:8]), 
+        .data(OPCODE_TRANSLATION_data)
     );
 
     wire ED_MCS_load, ED_MCS_enable;
@@ -97,7 +266,9 @@ module testbench_compute;
     wire ED_enable;
 
     halt_check # (.OPCODE_SIZE(8)) uut_halt_check (
-        .opcode(PRAM_data_out[15:8]), .result(ED_enable)
+        .opcode(PRAM_data_out[15:8]), 
+        // .opcode(DATAPATH_instruction[15:8]),
+        .result(ED_enable)
     );
 
     // execution driver
@@ -112,22 +283,22 @@ module testbench_compute;
 
     wire [WORD_SIZE-1:0] MUX2t1_DATAPATH_word;
 
-    mux_2to1 # (
-        .WORD_SIZE(WORD_SIZE)
-    ) uut_mux_2to1_datapath (
-        .A(PRAM_data_out), .B(16'b0), 
-        .enable(1'b1), .selector(MCR_control_lines[10]), .out(MUX2t1_DATAPATH_word)
-    );
+    // mux_2to1 # (
+    //     .WORD_SIZE(WORD_SIZE)
+    // ) uut_mux_2to1_datapath (
+    //     .A(PRAM_data_out), 
+    //     .B(16'b0), 
+    //     .enable(1'b1), .selector(MCR_control_lines[10]), .out(MUX2t1_DATAPATH_word)
+    // );
 
-    wire [WORD_SIZE-1:0] DATAPATH_instruction, DATAPATH_load, DATAPATH_peek, DATAPATH_void;
 
-    demux_1to3 # (
-        .WORD_SIZE(WORD_SIZE)
-    ) uut_demux_1to3_datapath (
-        .input_value(MUX2t1_DATAPATH_word), .enable(1'b1),
-        .selector(MCR_control_lines[9:8]),
-        .A(DATAPATH_instruction), .B(DATAPATH_load), .C(DATAPATH_peek), .NC(DATAPATH_void)
-    );
+    // demux_1to3 # (
+    //     .WORD_SIZE(WORD_SIZE)
+    // ) uut_demux_1to3_datapath (
+    //     .input_value(MUX2t1_DATAPATH_word), .enable(1'b1),
+    //     .selector(MCR_control_lines[9:8]),
+    //     .A(DATAPATH_instruction), .B(DATAPATH_load), .C(DATAPATH_peek), .NC(DATAPATH_void)
+    // );
 
     wire [2:0] MUX_LOGIC_SIDE_A_select;
     wire [3:0] MUX_LOGIC_SIDE_B_select;
@@ -182,6 +353,12 @@ module testbench_compute;
         .A(ALU_DEMUX_a), .B(ALU_DEMUX_b), .C(ALU_DEMUX_c), .D(ALU_DEMUX_d), .E(ALU_DEMUX_e), .F(ALU_DEMUX_f), .G(ALU_DEMUX_g), .H(ALU_DEMUX_h)
     );
 
+    decision_unit # (.WORD_SIZE(WORD_SIZE)) uut_decision_unit (
+        .program_counter_address(PC_value), .instruction(DATAPATH_instruction),
+        .peek_jump_address(DATAPATH_peek), .flags(ALU_flags),
+        .new_address(PC_new_address)
+    );
+
     initial begin
         
         // #10;
@@ -194,4 +371,4 @@ module testbench_compute;
 
 
 
-endmodule
+endmodule*/
