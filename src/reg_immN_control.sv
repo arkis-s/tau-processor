@@ -27,9 +27,9 @@ module muxer_select_decision_logic_a # (
     always_comb begin
 
         if (imm_flag) begin
-            mode_select = instruction[10:8];
+            mode_select <= instruction[10:8];
         end else begin
-            mode_select = instruction[6:4];
+            mode_select <= instruction[6:4];
         end
 
     end
@@ -46,9 +46,9 @@ module muxer_select_decision_logic_b # (
 
     always_comb begin
         if (imm_flag) begin
-            mode_select = DEFAULT_IMM_SELECTOR_VALUE;
+            mode_select <= DEFAULT_IMM_SELECTOR_VALUE;
         end else begin
-            mode_select = {1'b0, instruction[2:0]};
+            mode_select <= {1'b0, instruction[2:0]};
         end
     end
 endmodule

@@ -11,8 +11,8 @@ module mux_2to1 # (
     always_comb begin
         if (enable) begin
             case (selector)
-                0: out = A;
-                1: out = B;
+                0: out <= A;
+                1: out <= B;
             endcase
         end
     end
@@ -35,14 +35,14 @@ module mux_8to1 # (
     always_comb begin
         if (enable) begin
             case (selector)
-                0: out = A;
-                1: out = B;
-                2: out = C;
-                3: out = D;
-                4: out = E;
-                5: out = F;
-                6: out = G;
-                7: out = H;
+                0: out <= A;
+                1: out <= B;
+                2: out <= C;
+                3: out <= D;
+                4: out <= E;
+                5: out <= F;
+                6: out <= G;
+                7: out <= H;
             endcase
         end
     end
@@ -63,16 +63,16 @@ module mux_9to1 # (
     always_comb begin
         if (enable) begin
             case (selector)
-                0: out = A;
-                1: out = B;
-                2: out = C;
-                3: out = D;
-                4: out = E;
-                5: out = F;
-                6: out = G;
-                7: out = H;
-                8: out = IMM8;
-                default: out = NC;
+                0: out <= A;
+                1: out <= B;
+                2: out <= C;
+                3: out <= D;
+                4: out <= E;
+                5: out <= F;
+                6: out <= G;
+                7: out <= H;
+                8: out <= IMM8;
+                default: out <= NC;
             endcase
         end
     end
@@ -92,10 +92,10 @@ module demux_1to3 # (
     always_comb begin
         if (enable) begin
             case (selector)
-                0: A = input_value;
-                1: B = input_value; 
-                2: C = input_value;
-                default: NC = input_value;
+                0: A <= input_value;
+                1: B <= input_value; 
+                2: C <= input_value;
+                default: NC <= input_value;
             endcase
         end
     end
@@ -118,14 +118,14 @@ module demux_1to8 # (
         if (enable) begin
             case (selector)
 
-                0: A = input_value;
-                1: B = input_value; 
-                2: C = input_value;
-                3: D = input_value;
-                4: E = input_value;
-                5: F = input_value;
-                6: G = input_value;
-                7: H = input_value;
+                0: A <= input_value;
+                1: B <= input_value; 
+                2: C <= input_value;
+                3: D <= input_value;
+                4: E <= input_value;
+                5: F <= input_value;
+                6: G <= input_value;
+                7: H <= input_value;
                 // default: NC = input_value;
             endcase
         end

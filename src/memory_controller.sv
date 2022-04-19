@@ -26,46 +26,46 @@ module memory_controller # (
 
             // fetch value at address {E, F}
             LOAD: begin
-                p_ram_rw = 0;
-                p_ram_address = input_address;
+                p_ram_rw <= 0;
+                p_ram_address <= input_address;
             end
 
             STORE: begin
-                p_ram_rw = 1;
-                p_ram_address = input_address;
-                p_ram_data = input_data;
+                p_ram_rw <= 1;
+                p_ram_address <= input_address;
+                p_ram_data <= input_data;
             end
 
             LOADV: begin
-                v_ram_rw = 0;
-                v_ram_address = input_address;
+                v_ram_rw <= 0;
+                v_ram_address <= input_address;
             end
 
             STOREV: begin
-                v_ram_rw = 1;
-                v_ram_address = input_address;
-                v_ram_data = input_data;
+                v_ram_rw <= 1;
+                v_ram_address <= input_address;
+                v_ram_data <= input_data;
             end
 
             PEEK: begin
-                p_ram_rw = 0;
-                p_ram_address = program_counter_address + 1;
+                p_ram_rw <= 0;
+                p_ram_address <= program_counter_address + 1;
             end
 
             default: begin
-                p_ram_rw = 0;
-                v_ram_rw = 0;
+                p_ram_rw <= 0;
+                v_ram_rw <= 0;
 
                 // when the module gets an opcode it doesn't understand,
                 // we dont want to hamper the execution of the program, 
                 // so pass the value through
-                p_ram_address = program_counter_address;
-                v_ram_address = 0;
+                p_ram_address <= program_counter_address;
+                v_ram_address <= 0;
 
                 // only reading should occur, so it shouldn't matter
                 // what values these are set to
-                p_ram_data = 0;
-                v_ram_data = 0;
+                p_ram_data <= 0;
+                v_ram_data <= 0;
             end
 
         endcase
