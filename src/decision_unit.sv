@@ -27,29 +27,29 @@ module decision_unit # (
 
             JMP: new_address = peek_jump_address;
 
-            JE: new_address = (flags[ZERO] == 1) ? peek_jump_address : program_counter_address;
-            JNE: new_address = (flags[ZERO] == 0) ? peek_jump_address : program_counter_address;
+            JE: new_address = (flags[ZERO] == 1) ? peek_jump_address : program_counter_address+2;
+            JNE: new_address = (flags[ZERO] == 0) ? peek_jump_address : program_counter_address+2;
 
-            JC: new_address = (flags[CARRY] == 1) ? peek_jump_address : program_counter_address;
-            JNC: new_address = (flags[CARRY] == 0) ? peek_jump_address : program_counter_address;
+            JC: new_address = (flags[CARRY] == 1) ? peek_jump_address : program_counter_address+2;
+            JNC: new_address = (flags[CARRY] == 0) ? peek_jump_address : program_counter_address+2;
 
-            JS: new_address = (flags[SIGN] == 1) ? peek_jump_address : program_counter_address;
-            JNS: new_address = (flags[SIGN] == 0) ? peek_jump_address : program_counter_address;
+            JS: new_address = (flags[SIGN] == 1) ? peek_jump_address : program_counter_address+2;
+            JNS: new_address = (flags[SIGN] == 0) ? peek_jump_address : program_counter_address+2;
 
-            JO: new_address = (flags[OVERFLOW] == 1) ? peek_jump_address : program_counter_address;
-            JNO: new_address = (flags[OVERFLOW] == 0) ? peek_jump_address : program_counter_address;
+            JO: new_address = (flags[OVERFLOW] == 1) ? peek_jump_address : program_counter_address+2;
+            JNO: new_address = (flags[OVERFLOW] == 0) ? peek_jump_address : program_counter_address+2;
 
-            JA: new_address = ((flags[CARRY] ^ flags[ZERO]) == 0) ? peek_jump_address : program_counter_address;
-            JAE: new_address = (flags[CARRY] == 0) ? peek_jump_address : program_counter_address;
-            JB: new_address = (flags[CARRY] == 1) ? peek_jump_address : program_counter_address;
-            JBE: new_address = ((flags[CARRY] | flags[ZERO]) == 1) ? peek_jump_address : program_counter_address;
+            JA: new_address = ((flags[CARRY] ^ flags[ZERO]) == 0) ? peek_jump_address : program_counter_address+2;
+            JAE: new_address = (flags[CARRY] == 0) ? peek_jump_address : program_counter_address+2;
+            JB: new_address = (flags[CARRY] == 1) ? peek_jump_address : program_counter_address+2;
+            JBE: new_address = ((flags[CARRY] | flags[ZERO]) == 1) ? peek_jump_address : program_counter_address+2;
 
-            JG: new_address = (((flags[SIGN] ^ flags[OVERFLOW]) | flags[ZERO]) == 0) ? peek_jump_address : program_counter_address;
-            JGE: new_address = ((flags[SIGN] ^ flags[OVERFLOW]) == 0) ? peek_jump_address : program_counter_address;
-            JL: new_address = ((flags[SIGN] ^ flags[OVERFLOW]) == 1) ? peek_jump_address : program_counter_address;
-            JLE: new_address = (((flags[SIGN] ^ flags[OVERFLOW]) | flags[ZERO]) == 1) ? peek_jump_address : program_counter_address;
+            JG: new_address = (((flags[SIGN] ^ flags[OVERFLOW]) | flags[ZERO]) == 0) ? peek_jump_address : program_counter_address+2;
+            JGE: new_address = ((flags[SIGN] ^ flags[OVERFLOW]) == 0) ? peek_jump_address : program_counter_address+2;
+            JL: new_address = ((flags[SIGN] ^ flags[OVERFLOW]) == 1) ? peek_jump_address : program_counter_address+2;
+            JLE: new_address = (((flags[SIGN] ^ flags[OVERFLOW]) | flags[ZERO]) == 1) ? peek_jump_address : program_counter_address+2;
 
-            default: new_address = program_counter_address;
+            default: new_address = program_counter_address+2;
 
         endcase
     end
