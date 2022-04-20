@@ -8,7 +8,7 @@
 // 14:12 - memory controller mode select
 //      1 - load, 2 - store
 //      3 - loadv, 4 - storev
-//      5 - peek
+//      5 - peek, 6 - unpeek
 // 11 - instruction finish flag
 // 10:8 - datapath mode select
 //      0 - instruction = pram data,    1 - peek = pram data
@@ -39,5 +39,5 @@
 00C6 0808 // or reg1, reg2 @ 18 - 19
 00D6 0808 // xor reg1, reg2 @ 1A - 1B
 00E2 0808 // not reg1 @ 1C - 1D
-5100 8100 0800 // jmp
+5100 0100 8800 0000 // jmp
 001d 0800 // mov reg1, imm8 @ ---- 1E - 1F

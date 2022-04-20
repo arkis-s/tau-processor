@@ -7,7 +7,7 @@
 `include ".\\src\\ram.sv"
 `include ".\\src\\rom.sv"
 `include ".\\src\\reg_immN_control.sv"
-`include ".\\src\\halt_check.sv"
+`include ".\\src\\misc.sv"
 `include ".\\src\\datapath_controller.sv"
 
 
@@ -89,20 +89,28 @@ module testbench_compute_2;
                         OPCODE_TRANSLATOR_index, MICROSEQUENCER_address;
     
     wire HJ_ED_enable, 
-        ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en,
+        ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en, PCJMPEN_PC_enable, JMP_flag, ED_PC_load_n,
         MC_PRAM_rw;
+
+    wire [2:0] MUX_LOGIC_SIDE_A_select;
+    wire [3:0] MUX_LOGIC_SIDE_B_select;
+
+    wire [7:0] MUX_ALU_input_a, MUX_ALU_input_b, ALU_value_out, ALU_flags,
+                ALU_DEMUX_a, ALU_DEMUX_b, ALU_DEMUX_c, ALU_DEMUX_d,
+                REG_a_val, REG_b_val, REG_c_val, REG_d_val;
 
     halt_check uut_halt_check (.opcode(DATAPATH_instruction[15:8]), .result(HJ_ED_enable));
 
     execution_driver uut_execution_driver (
         .clock(clk), .enable(HJ_ED_enable), .instruction_finish_control_line(control_lines[11]),
-        .halt(~HJ_ED_enable),
+        .halt(~HJ_ED_enable), .jump_flag(control_lines[15]),
         .microcode_sequencer_load_n(ED_MCS_load_n), .microcode_sequencer_enable(ED_MCS_en), 
-        .microcode_rom_read_enable(ED_MCR_en), .program_counter_enable(ED_PC_en)
+        .microcode_rom_read_enable(ED_MCR_en), 
+        .program_counter_enable(ED_PC_en), .program_counter_load_n(ED_PC_load_n)
     );
-
+    
     counter_w_load # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16)) uut_program_counter (
-        .clock(clk), .load(~control_lines[15]), .enable(ED_PC_en),
+        .clock(clk), .load(ED_PC_load_n), .enable(ED_PC_en),
         .address(PC_new_address), .data(PC_value)
     );
 
@@ -123,6 +131,7 @@ module testbench_compute_2;
         .mode(control_lines[10:8]),
         .instruction(DATAPATH_instruction),
         .peek(DATAPATH_peek), .load(DATAPATH_load)
+        //.clock(clk)
     );
 
     ROM_async # (.ADDRESS_WIDTH(8), .MEMORY_DEPTH(256), 
@@ -150,14 +159,52 @@ module testbench_compute_2;
 
     decision_unit uut_decision_unit (
         .program_counter_address(PC_value), .instruction(DATAPATH_instruction),
-        .peek_jump_address(DATAPATH_peek), .flags(), .new_address(PC_new_address)
+        .peek_jump_address(DATAPATH_peek), .flags(ALU_flags), .new_address(PC_new_address)
         //.clock(clk)
     );
 
+    muxer_select_decision_logic_a # (.WORD_SIZE(WORD_SIZE)
+    ) uut_muxer_decision_logic_A (
+        .instruction(DATAPATH_instruction), .imm_flag(control_lines[0]),
+        .mode_select(MUX_LOGIC_SIDE_A_select)
+    );
+
+    muxer_select_decision_logic_b # (.WORD_SIZE(WORD_SIZE), .DEFAULT_IMM_SELECTOR_VALUE(8)
+    ) uut_muxer_decision_logic_b (
+        .instruction(DATAPATH_instruction), .imm_flag(control_lines[0]),
+        .mode_select(MUX_LOGIC_SIDE_B_select)
+    );
+
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_a (.clock(clk), .input_value(ALU_DEMUX_a), .output_value(REG_a_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_b (.clock(clk), .input_value(ALU_DEMUX_b), .output_value(REG_b_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_c (.clock(clk), .input_value(ALU_DEMUX_c), .output_value(REG_c_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_d (.clock(clk), .input_value(ALU_DEMUX_d), .output_value(REG_d_val));
+  
+    mux_8to1 # (.WORD_SIZE(BYTE)
+    ) uut_muxer_alu_input_a (
+        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(), .F(), .G(), .H(),
+        .enable(control_lines[1]), .selector(MUX_LOGIC_SIDE_A_select), 
+        .out(MUX_ALU_input_a)
+    );
+
+    mux_9to1 # (.WORD_SIZE(BYTE)) uut_muxer_alu_input_b (
+        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(), .F(), .G(), .H(), .IMM8(DATAPATH_instruction[7:0]), .NC(),
+        .enable(control_lines[2]), .selector(MUX_LOGIC_SIDE_B_select), .out(MUX_ALU_input_b)
+    );
+
+    alu # (.WORD_SIZE(BYTE)) uut_alu (
+        .input_A(MUX_ALU_input_a), .input_B(MUX_ALU_input_b), 
+        .mode_select(control_lines[7:4]), .flags(ALU_flags), .output_C(ALU_value_out)
+    );
+
+    demux_1to8 # (.WORD_SIZE(BYTE)) uut_demux_alu_out (
+        .input_value(ALU_value_out), .enable(control_lines[3]), .selector(MUX_LOGIC_SIDE_A_select),
+        .A(ALU_DEMUX_a), .B(ALU_DEMUX_b), .C(ALU_DEMUX_c), .D(ALU_DEMUX_d), .E(ALU_DEMUX_e), .F(ALU_DEMUX_f), .G(ALU_DEMUX_g), .H(ALU_DEMUX_h)
+    );
 
     initial begin
 
-        #400;
+        #300;
         $stop;
     end
 
