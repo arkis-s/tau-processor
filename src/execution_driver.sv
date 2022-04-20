@@ -1,6 +1,8 @@
 module execution_driver (
-    input wire clock, enable, instruction_finish_control_line, halt,
-    output reg microcode_sequencer_load_n, microcode_sequencer_enable, microcode_rom_read_enable, program_counter_enable
+    input wire clock, enable, instruction_finish_control_line, halt, jump_flag,
+    output reg microcode_sequencer_load_n, microcode_sequencer_enable, 
+                microcode_rom_read_enable, 
+                program_counter_enable, program_counter_load_n
 );
 
     reg [4:0] state = 0;
@@ -11,6 +13,7 @@ module execution_driver (
         microcode_sequencer_enable <= 0;
         microcode_rom_read_enable <= 0;
         program_counter_enable <= 0;
+        program_counter_load_n <= 1;
     end
 
     always @ (posedge halt) begin
@@ -19,6 +22,15 @@ module execution_driver (
         microcode_sequencer_enable <= 0;
         microcode_rom_read_enable <= 0;
         program_counter_enable <= 0;
+    end
+
+    always @ (posedge jump_flag) begin
+        state = 6;
+        microcode_sequencer_load_n <= 1;
+        microcode_sequencer_enable <= 0;
+        microcode_rom_read_enable <= 0;
+        program_counter_load_n <= 0;
+        $display("(%g) JUMP INSTRUCTION STARTED", $time);
     end
 
     always @ (negedge clock) begin
@@ -80,7 +92,7 @@ module execution_driver (
                 end
 
                 4: begin
-                    // disable the program counter and jump to state 0 on next clock
+                    // disable the program counter and jump to state 1 on next clock
                     program_counter_enable <= 0;
                     state <= 1;
                     $display("(%g) STATE 4 - EXECUTION FINISHED\n", $time);
@@ -93,6 +105,13 @@ module execution_driver (
                     program_counter_enable <= 0;
                     $display("(%g) STATE 5 - HALT.\n", $time);
                 end
+
+                6: begin
+                    program_counter_load_n <= 1;
+                    state <= 1;
+                    $display("(%g) STATE 6 - JUMP INSTRUCTION FINISHED\n", $time);
+                end
+
         endcase
     end
 endmodule
