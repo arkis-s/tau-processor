@@ -5,7 +5,8 @@ module decision_unit # (
     input wire [WORD_SIZE-1:0] instruction,
     input wire [WORD_SIZE-1:0] peek_jump_address,
     input wire [7:0] flags,
-    output reg [WORD_SIZE-1:0] new_address
+    output reg [WORD_SIZE-1:0] new_address,
+    output reg jump
 );
 
     // move both enums into package(?)
@@ -22,7 +23,8 @@ module decision_unit # (
 
 
     // todo: make this look better somehow
-    always_comb begin
+    // always_comb begin
+    always @ (instruction or peek_jump_address or flags) begin
         case (instruction[15:8])
 
             JMP: new_address = peek_jump_address;
