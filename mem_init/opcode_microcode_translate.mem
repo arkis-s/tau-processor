@@ -3,7 +3,7 @@
 // line number (excluding comments) == opcode and line content == index
 0000 // 00h nop
 0001 // 01h hlt
-0000 // 02h load
+0029 // 02h load
 0000 // 03h store
 0000 // 04h loadv
 0000 // 05h storev
@@ -41,11 +41,35 @@
 0000 // 25h undef
 0000 // 26h undef
 0000 // 27h undef
-0022 // 28h mov a, imm8
-0022 // 29h mov b, imm8
-0022 // 2Ah mov c, imm8
-0022 // 2Bh mov d, imm8
-0022 // 2Ch mov e, imm8
-0022 // 2Dh mov f, imm8
-0022 // 2Eh mov g, imm8
-0022 // 2Fh mov h, imm8
+0021 // 28h mov a, imm8
+0021 // 29h mov b, imm8
+0021 // 2Ah mov c, imm8
+0021 // 2Bh mov d, imm8
+0021 // 2Ch mov e, imm8
+0021 // 2Dh mov f, imm8
+0021 // 2Eh mov g, imm8
+0021 // 2Fh mov h, imm8
+0023 // 30h cmp a, imm8
+0023 // 31h cmp b, imm8
+0023 // 32h cmp c, imm8
+0023 // 33h cmp d, imm8
+0023 // 34h cmp e, imm8
+0023 // 35h cmp f, imm8
+0023 // 36h cmp g, imm8
+0023 // 37h cmp h, imm8
+0025 // 38h test a, imm8
+0025 // 39h test b, imm8
+0025 // 3Ah test c, imm8
+0025 // 3Bh test d, imm8
+0025 // 3Ch test e, imm8
+0025 // 3Dh test f, imm8
+0025 // 3Eh test g, imm8
+0025 // 3Fh test h, imm8
+0027 // 40h shl a, imm8
+0027 // 41h shl b, imm8
+0027 // 42h shl c, imm8
+0027 // 43h shl d, imm8
+0027 // 44h shl e, imm8
+0027 // 45h shl f, imm8
+0027 // 46h shl g, imm8
+0027 // 47h shl h, imm8

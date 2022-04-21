@@ -1,11 +1,34 @@
-28FD // 0 mov a, 253
-2901 // 1 mov b, 1
-0b01 // 2 add a, b
-1700 // 3 jc 
-0007 // 4
-1800 // 5 jnc 
-0002 // 6
-0100 // 7 hlt
+2C00 // 0 mov e, 0
+2D04 // 1 mov f, 4
+0200 // 2 load contents of address {e, f} into {g, h} -> expecting {BE,EF}
+0100 // 3 hlt
+BEEF // 4 data
+
+
+//2801 // mov a, 1
+//3001 // cmp a, 1
+//0100 // hlt
+
+
+
+//287E // 0 mov a, 254
+//2901 // 1 mov b, 1
+//0b01 // 2 add a, b
+//1900 // 3 js
+//0007 // 4
+//1A00 // 5 jns
+//0002 // 6
+//0100 // 7 hlt
+
+
+//28FD // 0 mov a, 253
+//2901 // 1 mov b, 1
+//0b01 // 2 add a, b
+//1700 // 3 jc 
+//0007 // 4
+//1800 // 5 jnc 
+//0002 // 6
+//0100 // 7 hlt
 
 //28FE // 0 mov a, 254
 //2901 // 1 mov b, 1

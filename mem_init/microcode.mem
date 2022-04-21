@@ -1,18 +1,19 @@
 // TAU MICROCODE
 // 
 // ========== MICROCODE LAYOUT ==========
-//  pc. l + mem c   instr. f + dataflow    alu mode     alu io + imm8 flag
+//  edn + mem c   instr. f + dataflow    alu mode     alu io + imm8 flag
 //  15 14 13 12       11 10 9 8            7 6 5 4        3 2 1 0
 // 
-// 15 - program counter load
+// 15 - notify execution driver of jmp
 // 14:12 - memory controller mode select
 //      1 - load, 2 - store
 //      3 - loadv, 4 - storev
-//      5 - peek, 6 - unpeek
+//      5 - peek
 // 11 - instruction finish flag
 // 10:8 - datapath mode select
 //      0 - instruction = pram data,    1 - peek = pram data
-//      2 - load = pram data,           3 - load = vram data
+//      2 - load = pram data,           3 - load = vram data,
+//      4 - set load flag               5 - clear load flag
 // 7:4 - alu mode select
 // 3:1 - alu i/o muxer/demuxer control 
 //      3 -> output C,  2 -> input B,   1 -> input A
@@ -39,5 +40,9 @@
 00C6 0808 // or reg1, reg2 @ 18 - 19
 00D6 0808 // xor reg1, reg2 @ 1A - 1B
 00E2 0808 // not reg1 @ 1C - 1D
-5100 0100 8800 0000 // jmp
-001d 0800 // mov reg1, imm8 @ ---- 1E - 1F
+5100 0100 8800 // all jump instructions @ 1E - 20
+001d 0800 // mov reg1, imm8 @ 21 - 22
+0023 0800 // cmp reg1, imm8 @ 23 - 24
+0033 0800 // test reg1, imm8 @ 25 - 26
+0043 0808 // shl reg1, imm8 @ 27 - 28
+1200 0200 0400 0500 0800 // load @ 29 - 2D
