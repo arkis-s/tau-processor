@@ -96,8 +96,8 @@ module testbench_compute_2;
     wire [3:0] MUX_LOGIC_SIDE_B_select;
 
     wire [7:0] MUX_ALU_input_a, MUX_ALU_input_b, ALU_value_out, ALU_flags,
-                ALU_DEMUX_a, ALU_DEMUX_b, ALU_DEMUX_c, ALU_DEMUX_d,
-                REG_a_val, REG_b_val, REG_c_val, REG_d_val;
+                ALU_DEMUX_a, ALU_DEMUX_b, ALU_DEMUX_c, ALU_DEMUX_d, ALU_DEMUX_e, ALU_DEMUX_f, ALU_DEMUX_g, ALU_DEMUX_h,
+                REG_a_val, REG_b_val, REG_c_val, REG_d_val, REG_e_val, REG_f_val, REG_g_val, REG_h_val;
 
     halt_check uut_halt_check (.opcode(DATAPATH_instruction[15:8]), .result(HJ_ED_enable));
 
@@ -108,14 +108,14 @@ module testbench_compute_2;
         .microcode_rom_read_enable(ED_MCR_en), 
         .program_counter_enable(ED_PC_en), .program_counter_load_n(ED_PC_load_n)
     );
-    
+
     counter_w_load # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16)) uut_program_counter (
         .clock(clk), .load(ED_PC_load_n), .enable(ED_PC_en),
         .address(PC_new_address), .data(PC_value)
     );
 
     memory_controller uut_memory_controller (
-        .program_counter_address(PC_value), .input_address(), .input_data(),
+        .program_counter_address(PC_value), .input_address({REG_e_val, REG_f_val}), .input_data({REG_g_val, REG_h_val}),
         .microcode_control(control_lines[14:12]),
         .p_ram_rw(MC_PRAM_rw), .p_ram_address(MC_PRAM_addr), .p_ram_data(MC_PRAM_data),
         .v_ram_rw(), .v_ram_address(), .v_ram_data()
@@ -179,16 +179,22 @@ module testbench_compute_2;
     register_N # (.WORD_SIZE(BYTE)) uut_reg_b (.clock(clk), .input_value(ALU_DEMUX_b), .output_value(REG_b_val));
     register_N # (.WORD_SIZE(BYTE)) uut_reg_c (.clock(clk), .input_value(ALU_DEMUX_c), .output_value(REG_c_val));
     register_N # (.WORD_SIZE(BYTE)) uut_reg_d (.clock(clk), .input_value(ALU_DEMUX_d), .output_value(REG_d_val));
+
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_e (.clock(clk), .input_value(ALU_DEMUX_e), .output_value(REG_e_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_f (.clock(clk), .input_value(ALU_DEMUX_f), .output_value(REG_f_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(ALU_DEMUX_g), .output_value(REG_g_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(ALU_DEMUX_h), .output_value(REG_h_val));
   
     mux_8to1 # (.WORD_SIZE(BYTE)
     ) uut_muxer_alu_input_a (
-        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(), .F(), .G(), .H(),
+        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(REG_e_val), .F(REG_f_val), .G(REG_g_val), .H(REG_h_val),
         .enable(control_lines[1]), .selector(MUX_LOGIC_SIDE_A_select), 
         .out(MUX_ALU_input_a)
     );
 
     mux_9to1 # (.WORD_SIZE(BYTE)) uut_muxer_alu_input_b (
-        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(), .F(), .G(), .H(), .IMM8(DATAPATH_instruction[7:0]), .NC(),
+        .A(REG_a_val), .B(REG_b_val), .C(REG_c_val), .D(REG_d_val), .E(REG_e_val), .F(REG_f_val), .G(REG_g_val), .H(REG_h_val), 
+        .IMM8(DATAPATH_instruction[7:0]),
         .enable(control_lines[2]), .selector(MUX_LOGIC_SIDE_B_select), .out(MUX_ALU_input_b)
     );
 
