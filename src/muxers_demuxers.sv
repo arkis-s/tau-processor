@@ -110,7 +110,7 @@ module demux_1to8 # (
     input wire enable,
     input wire [2:0] selector,
     //                          0  1  2  3  4  5  6  7, ///8-...
-    output reg [WORD_SIZE-1:0] A, B, C, D, E, F, G, H, NC
+    output reg [WORD_SIZE-1:0] A, B, C, D, E, F, G, H //, NC
 );
 
 
