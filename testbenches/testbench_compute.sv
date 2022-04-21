@@ -89,15 +89,21 @@ module testbench_compute_2;
                         OPCODE_TRANSLATOR_index, MICROSEQUENCER_address;
     
     wire HJ_ED_enable, 
-        ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en, PCJMPEN_PC_enable, JMP_flag, ED_PC_load_n,
-        MC_PRAM_rw;
+        ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en, ED_PC_load_n,
+        MC_PRAM_rw, DATAPATH_load_flag, LOADMUX_gh_enable;
 
     wire [2:0] MUX_LOGIC_SIDE_A_select;
     wire [3:0] MUX_LOGIC_SIDE_B_select;
 
     wire [7:0] MUX_ALU_input_a, MUX_ALU_input_b, ALU_value_out, ALU_flags,
                 ALU_DEMUX_a, ALU_DEMUX_b, ALU_DEMUX_c, ALU_DEMUX_d, ALU_DEMUX_e, ALU_DEMUX_f, ALU_DEMUX_g, ALU_DEMUX_h,
-                REG_a_val, REG_b_val, REG_c_val, REG_d_val, REG_e_val, REG_f_val, REG_g_val, REG_h_val;
+                REG_a_val, REG_b_val, REG_c_val, REG_d_val, REG_e_val, REG_f_val, REG_g_val, REG_h_val,
+                LOADMUX_REG_g_value, LOADMUX_REG_h_value;
+
+
+    assign LOADMUX_gh_enable = (
+        (~DATAPATH_load_flag & control_lines[3]) | (DATAPATH_load_flag & ~control_lines[3])
+    );
 
     halt_check uut_halt_check (.opcode(DATAPATH_instruction[15:8]), .result(HJ_ED_enable));
 
@@ -130,7 +136,8 @@ module testbench_compute_2;
         .p_ram_data(PRAM_data_out), .v_ram_data(),
         .mode(control_lines[10:8]),
         .instruction(DATAPATH_instruction),
-        .peek(DATAPATH_peek), .load(DATAPATH_load)
+        .peek(DATAPATH_peek), .load(DATAPATH_load),
+        .load_flag(DATAPATH_load_flag)
         //.clock(clk)
     );
 
@@ -182,8 +189,8 @@ module testbench_compute_2;
 
     register_N # (.WORD_SIZE(BYTE)) uut_reg_e (.clock(clk), .input_value(ALU_DEMUX_e), .output_value(REG_e_val));
     register_N # (.WORD_SIZE(BYTE)) uut_reg_f (.clock(clk), .input_value(ALU_DEMUX_f), .output_value(REG_f_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(ALU_DEMUX_g), .output_value(REG_g_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(ALU_DEMUX_h), .output_value(REG_h_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(LOADMUX_REG_g_value), .output_value(REG_g_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(LOADMUX_REG_h_value), .output_value(REG_h_val));
   
     mux_8to1 # (.WORD_SIZE(BYTE)
     ) uut_muxer_alu_input_a (
@@ -206,6 +213,14 @@ module testbench_compute_2;
     demux_1to8 # (.WORD_SIZE(BYTE)) uut_demux_alu_out (
         .input_value(ALU_value_out), .enable(control_lines[3]), .selector(MUX_LOGIC_SIDE_A_select),
         .A(ALU_DEMUX_a), .B(ALU_DEMUX_b), .C(ALU_DEMUX_c), .D(ALU_DEMUX_d), .E(ALU_DEMUX_e), .F(ALU_DEMUX_f), .G(ALU_DEMUX_g), .H(ALU_DEMUX_h)
+    );
+
+    mux_2to1 uut_load_mux_reg_g (
+        .A(ALU_DEMUX_g), .B(DATAPATH_load[15:8]), .enable(LOADMUX_gh_enable), .selector(DATAPATH_load_flag), .out(LOADMUX_REG_g_value)
+    );
+
+    mux_2to1 uut_load_mux_reg_h (
+        .A(ALU_DEMUX_h), .B(DATAPATH_load[7:0]), .enable(LOADMUX_gh_enable), .selector(DATAPATH_load_flag), .out(LOADMUX_REG_h_value)
     );
 
     initial begin
