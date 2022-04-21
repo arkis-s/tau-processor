@@ -5,7 +5,7 @@ module mux_2to1 # (
     input wire [WORD_SIZE-1:0] A, B,
     input wire enable,
     input wire selector,
-    output reg [WORD_SIZE-1:0] out = 0
+    output reg [WORD_SIZE-1:0] out // = 0
 );
 
     always_comb begin
