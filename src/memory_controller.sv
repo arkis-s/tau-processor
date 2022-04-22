@@ -60,7 +60,7 @@ module memory_controller # (
                 // we dont want to hamper the execution of the program, 
                 // so pass the value through
                 p_ram_address <= program_counter_address;
-                v_ram_address <= 0;
+                v_ram_address <= v_ram_address;
 
                 // only reading should occur, so it shouldn't matter
                 // what values these are set to
