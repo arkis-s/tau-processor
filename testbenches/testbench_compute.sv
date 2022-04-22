@@ -84,13 +84,14 @@ module testbench_compute_2;
 
     wire [WORD_SIZE-1:0] PC_value, PC_new_address,
                         DATAPATH_instruction, DATAPATH_peek, DATAPATH_load,
-                        MC_PRAM_addr, MC_PRAM_data,
-                        PRAM_data_out,
+                        MC_PRAM_addr, MC_PRAM_data, MC_VRAM_addr_a, MC_VRAM_data_in_a,
+                        PRAM_data_out, VRAM_data_out_a,
                         OPCODE_TRANSLATOR_index, MICROSEQUENCER_address;
     
     wire HJ_ED_enable, 
         ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en, ED_PC_load_n,
-        MC_PRAM_rw, DATAPATH_load_flag, LOADMUX_gh_enable, LOADMUX_gh_select,
+        MC_PRAM_rw, MC_VRAM_a_rw,
+        DATAPATH_load_flag, LOADMUX_gh_enable, LOADMUX_gh_select,
         LOADMUX_glue_g_select, LOADMUX_glue_h_select;
 
     wire [2:0] MUX_LOGIC_SIDE_A_select;
@@ -125,7 +126,7 @@ module testbench_compute_2;
         .program_counter_address(PC_value), .input_address({REG_e_val, REG_f_val}), .input_data({REG_g_val, REG_h_val}),
         .microcode_control(control_lines[14:12]),
         .p_ram_rw(MC_PRAM_rw), .p_ram_address(MC_PRAM_addr), .p_ram_data(MC_PRAM_data),
-        .v_ram_rw(), .v_ram_address(), .v_ram_data()
+        .v_ram_rw(MC_VRAM_a_rw), .v_ram_address(MC_VRAM_addr_a), .v_ram_data(MC_VRAM_data_in_a)
     );
 
     ram_single_port_sync # (.INIT_FILE(".\\mem_init\\test_program.mem")) uut_program_ram (
@@ -133,8 +134,16 @@ module testbench_compute_2;
         .address(MC_PRAM_addr), .data_in(MC_PRAM_data), .data_out(PRAM_data_out)
     );
 
+    ram_dual_port_sync # (.INIT_FILE(".\\mem_init\\vram_init.mem")) uut_video_ram (
+        .clock_a(clk), .enable_a(1'b1), .rw_a(MC_VRAM_a_rw), 
+        .address_a(MC_VRAM_addr_a), .data_in_a(MC_VRAM_data_in_a), .data_out_a(VRAM_data_out_a),
+
+        .clock_b(), .enable_b(1'b0), .rw_b(1'b0),
+        .address_b(), .data_in_b(), .data_out_b()
+    );
+
     datapath_controller uut_datapath_controller (
-        .p_ram_data(PRAM_data_out), .v_ram_data(),
+        .p_ram_data(PRAM_data_out), .v_ram_data(VRAM_data_out_a),
         .mode(control_lines[10:8]),
         .instruction(DATAPATH_instruction),
         .peek(DATAPATH_peek), .load(DATAPATH_load),
@@ -228,11 +237,11 @@ module testbench_compute_2;
     );
 
     mux_2to1 uut_load_mux_reg_g (
-        .A(ALU_DEMUX_g), .B(DATAPATH_load[15:8]), .enable(LOADMUX_gh_enable), .selector(LOADMUX_glue_g_select), .out(LOADMUX_REG_g_value)
+        .A(ALU_DEMUX_g), .B(DATAPATH_load[15:8]), .enable(1'b1), .selector(LOADMUX_glue_g_select), .out(LOADMUX_REG_g_value)
     );
 
     mux_2to1 uut_load_mux_reg_h (
-        .A(ALU_DEMUX_h), .B(DATAPATH_load[7:0]), .enable(LOADMUX_gh_enable), .selector(LOADMUX_glue_h_select), .out(LOADMUX_REG_h_value)
+        .A(ALU_DEMUX_h), .B(DATAPATH_load[7:0]), .enable(1'b1), .selector(LOADMUX_glue_h_select), .out(LOADMUX_REG_h_value)
     );
 
     initial begin
