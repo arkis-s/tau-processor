@@ -4,7 +4,7 @@
 0000 // 00h nop
 0001 // 01h hlt
 0029 // 02h load
-0000 // 03h store
+002E // 03h store
 0000 // 04h loadv
 0000 // 05h storev
 0002 // 06h mov reg1, reg2

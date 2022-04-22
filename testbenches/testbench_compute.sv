@@ -90,7 +90,8 @@ module testbench_compute_2;
     
     wire HJ_ED_enable, 
         ED_MCS_load_n, ED_MCS_en, ED_MCR_en, ED_PC_en, ED_PC_load_n,
-        MC_PRAM_rw, DATAPATH_load_flag, LOADMUX_gh_enable;
+        MC_PRAM_rw, DATAPATH_load_flag, LOADMUX_gh_enable, LOADMUX_gh_select,
+        LOADMUX_glue_g_select, LOADMUX_glue_h_select;
 
     wire [2:0] MUX_LOGIC_SIDE_A_select;
     wire [3:0] MUX_LOGIC_SIDE_B_select;
@@ -101,9 +102,9 @@ module testbench_compute_2;
                 LOADMUX_REG_g_value, LOADMUX_REG_h_value;
 
 
-    assign LOADMUX_gh_enable = (
-        (~DATAPATH_load_flag & control_lines[3]) | (DATAPATH_load_flag & ~control_lines[3])
-    );
+    assign LOADMUX_gh_enable = ((~DATAPATH_load_flag & control_lines[3]) | (DATAPATH_load_flag & ~control_lines[3]));
+
+    assign LOADMUX_gh_select = (DATAPATH_load_flag & ~control_lines[3]);
 
     halt_check uut_halt_check (.opcode(DATAPATH_instruction[15:8]), .result(HJ_ED_enable));
 
@@ -173,13 +174,13 @@ module testbench_compute_2;
     muxer_select_decision_logic_a # (.WORD_SIZE(WORD_SIZE)
     ) uut_muxer_decision_logic_A (
         .instruction(DATAPATH_instruction), .imm_flag(control_lines[0]),
-        .mode_select(MUX_LOGIC_SIDE_A_select)
+        .mode_select(MUX_LOGIC_SIDE_A_select), .clock(clk)
     );
 
     muxer_select_decision_logic_b # (.WORD_SIZE(WORD_SIZE), .DEFAULT_IMM_SELECTOR_VALUE(8)
     ) uut_muxer_decision_logic_b (
         .instruction(DATAPATH_instruction), .imm_flag(control_lines[0]),
-        .mode_select(MUX_LOGIC_SIDE_B_select)
+        .mode_select(MUX_LOGIC_SIDE_B_select), .clock(clk)
     );
 
     register_N # (.WORD_SIZE(BYTE)) uut_reg_a (.clock(clk), .input_value(ALU_DEMUX_a), .output_value(REG_a_val));
@@ -191,8 +192,6 @@ module testbench_compute_2;
     register_N # (.WORD_SIZE(BYTE)) uut_reg_f (.clock(clk), .input_value(ALU_DEMUX_f), .output_value(REG_f_val));
     register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(LOADMUX_REG_g_value), .output_value(REG_g_val));
     register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(LOADMUX_REG_h_value), .output_value(REG_h_val));
-    // register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(ALU_DEMUX_g), .output_value(REG_g_val));
-    // register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(ALU_DEMUX_h), .output_value(REG_h_val));
 
   
     mux_8to1 # (.WORD_SIZE(BYTE)
@@ -218,12 +217,22 @@ module testbench_compute_2;
         .A(ALU_DEMUX_a), .B(ALU_DEMUX_b), .C(ALU_DEMUX_c), .D(ALU_DEMUX_d), .E(ALU_DEMUX_e), .F(ALU_DEMUX_f), .G(ALU_DEMUX_g), .H(ALU_DEMUX_h)
     );
 
+    load_register_glue_logic # (.REGISTER_VAL(6)) uut_load_mux_glue_g (
+        .mux_register_select(MUX_LOGIC_SIDE_A_select), .load_flag(DATAPATH_load_flag), 
+        .alu_output_flag(control_lines[3]), .load_mux_select(LOADMUX_glue_g_select)
+    );
+
+    load_register_glue_logic # (.REGISTER_VAL(7)) uut_load_mux_glue_h (
+        .mux_register_select(MUX_LOGIC_SIDE_A_select), .load_flag(DATAPATH_load_flag),
+        .alu_output_flag(control_lines[3]), .load_mux_select(LOADMUX_glue_h_select)
+    );
+
     mux_2to1 uut_load_mux_reg_g (
-        .A(ALU_DEMUX_g), .B(DATAPATH_load[15:8]), .enable(LOADMUX_gh_enable), .selector(DATAPATH_load_flag), .out(LOADMUX_REG_g_value)
+        .A(ALU_DEMUX_g), .B(DATAPATH_load[15:8]), .enable(LOADMUX_gh_enable), .selector(LOADMUX_glue_g_select), .out(LOADMUX_REG_g_value)
     );
 
     mux_2to1 uut_load_mux_reg_h (
-        .A(ALU_DEMUX_h), .B(DATAPATH_load[7:0]), .enable(LOADMUX_gh_enable), .selector(DATAPATH_load_flag), .out(LOADMUX_REG_h_value)
+        .A(ALU_DEMUX_h), .B(DATAPATH_load[7:0]), .enable(LOADMUX_gh_enable), .selector(LOADMUX_glue_h_select), .out(LOADMUX_REG_h_value)
     );
 
     initial begin
