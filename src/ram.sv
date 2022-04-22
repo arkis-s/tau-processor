@@ -43,6 +43,10 @@ module ram_dual_port_sync # (
 
     reg [DATA_WIDTH-1:0] memory_block_dual [0:MEMORY_DEPTH-1];
 
+    initial begin
+        $readmemh(INIT_FILE, memory_block_dual);
+    end
+
     always @ (posedge clock_a) begin
         if (enable_a) begin
             // read = 0, write = 1
