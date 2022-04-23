@@ -21,8 +21,16 @@ module testbench_vga_driver;
 
 
     initial begin
-        #10000;
+        
+        //if (y == 524) begin
+        //    $stop;
+        //end
+        
+        #1700000;
         $stop;
+
+        //#500000;
+        //$stop;
     end
 
 
