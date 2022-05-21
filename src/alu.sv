@@ -102,6 +102,7 @@ module alu # (
             // compare a & b
             2:  begin
                 temp = input_A - input_B;
+                $display("ALU CMP TEMP A - B = C --- %h - %h = %h", input_A, input_B, temp);
                 flags[ZERO] = is_zero(temp);
                 flags[SIGN] = is_signed(temp);
                 flags[CARRY] = has_carry_subtract(input_A, input_B);

@@ -42,7 +42,7 @@
 00E2 0808 // not reg1 @ 1C - 1D
 5100 0100 8800 // all jump instructions @ 1E - 20
 001d 0800 // mov reg1, imm8 @ 21 - 22
-0023 0800 // cmp reg1, imm8 @ 23 - 24
+0027 0800 // cmp reg1, imm8 @ 23 - 24
 0033 0800 // test reg1, imm8 @ 25 - 26
 0043 0808 // shl reg1, imm8 @ 27 - 28
 1200 0200 0400 0500 0800 // load @ 29 - 2D
