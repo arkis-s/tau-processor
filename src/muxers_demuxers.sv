@@ -8,7 +8,8 @@ module mux_2to1 # (
     output reg [WORD_SIZE-1:0] out // = 0
 );
 
-    always_comb begin
+     always_comb begin
+    //always @ (*) begin
         if (enable) begin
             case (selector)
                 0: out <= A;
@@ -33,16 +34,17 @@ module mux_8to1 # (
 );
 
     always_comb begin
+    //always @ (*) begin
         if (enable) begin
             case (selector)
-                0: out <= A;
-                1: out <= B;
-                2: out <= C;
-                3: out <= D;
-                4: out <= E;
-                5: out <= F;
-                6: out <= G;
-                7: out <= H;
+                0: out = A;
+                1: out = B;
+                2: out = C;
+                3: out = D;
+                4: out = E;
+                5: out = F;
+                6: out = G;
+                7: out = H;
             endcase
         end
     end
@@ -61,6 +63,7 @@ module mux_9to1 # (
 );
 
     always_comb begin
+    //always @ (*) begin
         if (enable) begin
             case (selector)
                 0: out <= A;
@@ -82,7 +85,7 @@ endmodule
 module demux_1to3 # (
     parameter WORD_SIZE = 8
 ) (
-    input wire[WORD_SIZE-1:0] input_value = 0,
+    input wire [WORD_SIZE-1:0] input_value,
     input wire enable,
     input wire [1:0] selector,
     //                          0  1  2
@@ -106,7 +109,7 @@ endmodule
 module demux_1to8 # (
     parameter WORD_SIZE = 8
 ) (
-    input wire[WORD_SIZE-1:0] input_value = 0,
+    input wire[WORD_SIZE-1:0] input_value,
     input wire enable,
     input wire [2:0] selector,
     //                          0  1  2  3  4  5  6  7, ///8-...
@@ -114,7 +117,8 @@ module demux_1to8 # (
 );
 
 
-    always_comb begin
+     always_comb begin
+    //always @ (*) begin
         if (enable) begin
             case (selector)
 

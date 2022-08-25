@@ -10,14 +10,33 @@ module halt_check # (
     // else
     //      enable execution driver
 
-    always_comb begin
-        
-        if (opcode == 8'h01) begin
-            result = 0;
-        end else begin
-            result = 1;
-        end
+    // logic already_halted = 0;
 
+    // always @ (*) begin
+
+    //     if (!already_halted) begin
+    //         if (opcode == 8'h01) begin
+    //             result <= 0;
+    //             already_halted <= 1;
+    //         end else begin
+    //             result <= 1;
+    //         end
+    //     end else begin
+    //         result <= 0;
+    //     end
+
+
+    // end
+
+
+    always_comb begin
+       
+       if (opcode == 8'h01) begin
+           result = 0;
+       end else begin
+           result = 1;
+       end
+    
     end
 
 
@@ -32,6 +51,7 @@ module load_register_glue_logic # (
 );
 
     always_comb begin
+    //always @ (*) begin
 
         if(load_flag == 1) begin
             load_mux_select <= 1;
@@ -54,9 +74,10 @@ module ega_colour_palette_logic (
 
         case (index)
             // https://en.wikipedia.org/wiki/Enhanced_Graphics_Adapter#Color_palette
-            
+    
             // formatting is rgbRGB where lowercase = low intensity, uppercase = high intensity
-
+            // 5 4 3   2 1 0
+            // r g b   R G B
             0: colour <= 6'b000000; // black
             1: colour <= 6'b000001; // blue
             2: colour <= 6'b000010; // green

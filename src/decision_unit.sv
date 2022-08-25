@@ -17,8 +17,12 @@ module decision_unit # (
         JG = 8'h21, JGE = 8'h22, JL = 8'h23, JLE = 8'h24
     } jump_instruction_enum;
 
-    typedef enum logic [3:0]  {
-        ZERO = 7, SIGN = 6, CARRY = 5, OVERFLOW = 4
+    //typedef enum logic [3:0]  {
+    //    ZERO = 7, SIGN = 6, CARRY = 5, OVERFLOW = 4
+    //} flag_name_enum;
+
+    typedef enum logic [3:0] {
+        ZERO = 4'b0111, SIGN = 4'b0110, CARRY = 4'b0101, OVERFLOW = 4'b0100
     } flag_name_enum;
 
 

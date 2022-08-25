@@ -11,16 +11,23 @@ module memory_controller # (
     output reg [INPUT_DATA_WIDTH-1:0] p_ram_address, v_ram_address, p_ram_data, v_ram_data
 );
 
+    //typedef enum logic [2:0] {
+    //    // load = load from memory into reg
+    //    // store = store from reg into memory
+    //    LOAD = 1, STORE = 2,
+    //    LOADV = 3, STOREV = 4,
+    //    PEEK = 5
+    //} load_store_op_set;
+
     typedef enum logic [2:0] {
-        // load = load from memory into reg
-        // store = store from reg into memory
-        LOAD = 1, STORE = 2,
-        LOADV = 3, STOREV = 4,
-        PEEK = 5
+        LOAD = 3'b001, STORE = 3'b010,
+        LOADV = 3'b011, STOREV = 3'b100,
+        PEEK = 3'b101
     } load_store_op_set;
 
 
     always_comb begin
+    //always @ (*) begin
         
         case (microcode_control)
 

@@ -78,6 +78,8 @@ module testbench_compute_2;
     reg clk = 0;
     always #CLK_5 clk = ~clk;
 
+    reg global_reset = 0;
+
     localparam WORD_SIZE = 16, MICROCODE_WIDTH = 16, BYTE = 8;
 
     wire [MICROCODE_WIDTH-1:0] control_lines;
@@ -114,12 +116,12 @@ module testbench_compute_2;
         .halt(~HJ_ED_enable), .jump_flag(control_lines[15]),
         .microcode_sequencer_load_n(ED_MCS_load_n), .microcode_sequencer_enable(ED_MCS_en), 
         .microcode_rom_read_enable(ED_MCR_en), 
-        .program_counter_enable(ED_PC_en), .program_counter_load_n(ED_PC_load_n)
+        .program_counter_enable(ED_PC_en), .program_counter_load_n(ED_PC_load_n), .reset(global_reset)
     );
 
     counter_w_load # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16)) uut_program_counter (
         .clock(clk), .load(ED_PC_load_n), .enable(ED_PC_en),
-        .address(PC_new_address), .data(PC_value)
+        .address(PC_new_address), .data(PC_value), .reset(global_reset)
     );
 
     memory_controller uut_memory_controller (
@@ -156,22 +158,22 @@ module testbench_compute_2;
                  .INIT_FILE(".\\mem_init\\opcode_microcode_translate.mem")
     ) uut_opcode_translator_rom (
         .read_enable(1'b1), .address(DATAPATH_instruction[15:8]),
-        .data(OPCODE_TRANSLATOR_index)
+        .data(OPCODE_TRANSLATOR_index), .reset(global_reset_inv)
     );
 
     counter_w_load # (
         .ADDRESS_WIDTH(16), .DATA_WIDTH(16)
     ) uut_microcode_sequencer (
         .clock(clk), .load(ED_MCS_load_n), .enable(ED_MCS_en),
-        .address(OPCODE_TRANSLATOR_index), .data(MICROSEQUENCER_address)
+        .address(OPCODE_TRANSLATOR_index), .data(MICROSEQUENCER_address), .reset(global_reset)
     );
 
      ROM_async # (
         .ADDRESS_WIDTH(16), .DATA_WIDTH(MICROCODE_WIDTH), 
-        .MEMORY_DEPTH(64), .INIT_FILE(".\\mem_init\\microcode.mem")
+        .MEMORY_DEPTH(256), .INIT_FILE(".\\mem_init\\microcode.mem")
     ) uut_microcode_rom (
-        .read_enable(ED_MCR_en), 
-        .address(MICROSEQUENCER_address), .data(control_lines)
+        .read_enable(ED_MCR_en), //.clock(clk),
+        .address(MICROSEQUENCER_address), .data(control_lines), .reset(global_reset)
     );
 
     decision_unit uut_decision_unit (
@@ -192,15 +194,15 @@ module testbench_compute_2;
         .mode_select(MUX_LOGIC_SIDE_B_select), .clock(clk)
     );
 
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_a (.clock(clk), .input_value(ALU_DEMUX_a), .output_value(REG_a_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_b (.clock(clk), .input_value(ALU_DEMUX_b), .output_value(REG_b_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_c (.clock(clk), .input_value(ALU_DEMUX_c), .output_value(REG_c_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_d (.clock(clk), .input_value(ALU_DEMUX_d), .output_value(REG_d_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_a (.clock(clk), .input_value(ALU_DEMUX_a), .output_value(REG_a_val), .reset(global_reset));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_b (.clock(clk), .input_value(ALU_DEMUX_b), .output_value(REG_b_val), .reset(global_reset));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_c (.clock(clk), .input_value(ALU_DEMUX_c), .output_value(REG_c_val), .reset(global_reset));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_d (.clock(clk), .input_value(ALU_DEMUX_d), .output_value(REG_d_val), .reset(global_reset));
 
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_e (.clock(clk), .input_value(ALU_DEMUX_e), .output_value(REG_e_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_f (.clock(clk), .input_value(ALU_DEMUX_f), .output_value(REG_f_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(LOADMUX_REG_g_value), .output_value(REG_g_val));
-    register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(LOADMUX_REG_h_value), .output_value(REG_h_val));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_e (.clock(clk), .input_value(ALU_DEMUX_e), .output_value(REG_e_val), .reset(global_reset));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_f (.clock(clk), .input_value(ALU_DEMUX_f), .output_value(REG_f_val), .reset(global_reset));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_g (.clock(clk), .input_value(LOADMUX_REG_g_value), .output_value(REG_g_val), .reset(global_reset));
+    register_N # (.WORD_SIZE(BYTE)) uut_reg_h (.clock(clk), .input_value(LOADMUX_REG_h_value), .output_value(REG_h_val), .reset(global_reset));
 
   
     mux_8to1 # (.WORD_SIZE(BYTE)

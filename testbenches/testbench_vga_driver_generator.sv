@@ -19,7 +19,7 @@ module testbench_vga_driver_generator;
     //reg [15:0] dummy_mem [0:76800] // 76800 == 320 * 240
 
     ram_dual_port_sync # (.ADDRESS_WIDTH(16), .DATA_WIDTH(16), 
-        .MEMORY_DEPTH(768000), .INIT_FILE(".\\mem_init\\vram_init.mem")
+        .MEMORY_DEPTH(19200), .INIT_FILE(".\\mem_init\\vram_init_gen.mem")
     ) uut_vram (
         .clock_b(clock), .enable_b(1'b1), .rw_b(1'b0), 
         .address_b(vram_addr), .data_out_b(vram_data)
