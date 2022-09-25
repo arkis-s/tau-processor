@@ -4,7 +4,7 @@ module counter_loadable # (
     // inputs: clock, enable, count, load, reset, load_value
     // outputs: counter_value
 
-    input wire clock, enable, reset, count, load,
+    input wire clock, enable, reset, count_up, count_down, load,
     input wire [WIDTH-1:0] load_value,
     output reg [WIDTH-1:0] counter_value
 );
@@ -14,8 +14,10 @@ module counter_loadable # (
         if (reset) begin
             counter_value <= 0;
         end else if (enable) begin
-            if (count) begin
+            if (count_up) begin
                 counter_value <= counter_value + 1;
+            end else if (count_down) begin 
+                counter_value <= counter_value - 1;
             end else if (load) begin
                 counter_value <= load_value;
             end
