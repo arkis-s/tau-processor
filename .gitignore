@@ -4,9 +4,11 @@
 !/src
 !/testbenches
 !/waves
+!/misc
 
 # project files
 !.gitignore
 !*.sv
 !*.do
 !*.mem
+!*.py
